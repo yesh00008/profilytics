@@ -60,7 +60,7 @@ const Index = () => {
                   borderRadius: '6px',
                 },
               },
-              themes: {
+              theme: {
                 default: {
                   colors: {
                     brand: '#1e40af',
