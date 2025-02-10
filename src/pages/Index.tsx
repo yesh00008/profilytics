@@ -61,7 +61,7 @@ const Index = () => {
                   borderRadius: '6px',
                 },
               },
-              theme: {
+              variables: {
                 default: {
                   colors: {
                     brand: '#1e40af',
@@ -72,13 +72,6 @@ const Index = () => {
             }}
             providers={['google']}
             redirectTo={window.location.origin}
-            onError={(error) => {
-              toast({
-                variant: "destructive",
-                title: "Authentication Error",
-                description: error.message,
-              });
-            }}
           />
         </Card>
       </div>
