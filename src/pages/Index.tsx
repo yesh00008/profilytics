@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
@@ -7,7 +6,7 @@ import { ThemeSupa } from '@supabase/auth-ui-shared';
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
-import { Briefcase, Calendar, Users, BookOpen, Trophy, Network } from "lucide-react";
+import { Briefcase, Calendar, Users, BookOpen, Trophy, Network, UserCircle } from "lucide-react";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -52,15 +51,6 @@ const Index = () => {
             supabaseClient={supabase}
             appearance={{
               theme: ThemeSupa,
-              style: {
-                button: {
-                  borderRadius: '6px',
-                  height: '40px',
-                },
-                input: {
-                  borderRadius: '6px',
-                },
-              },
               variables: {
                 default: {
                   colors: {
@@ -71,7 +61,6 @@ const Index = () => {
               },
             }}
             providers={['google']}
-            redirectTo={window.location.origin}
           />
         </Card>
       </div>
@@ -125,23 +114,32 @@ const Index = () => {
             <h1 className="text-3xl font-bold">Welcome to ProfiLytics</h1>
             <p className="text-gray-600 mt-2">Your professional growth starts here</p>
           </div>
-          <Button 
-            variant="outline"
-            onClick={async () => {
-              try {
-                await supabase.auth.signOut();
-                navigate('/');
-              } catch (error: any) {
-                toast({
-                  variant: "destructive",
-                  title: "Error signing out",
-                  description: error.message,
-                });
-              }
-            }}
-          >
-            Sign Out
-          </Button>
+          <div className="flex gap-4">
+            <Button 
+              variant="outline"
+              onClick={() => navigate('/profile')}
+            >
+              <UserCircle className="h-4 w-4 mr-2" />
+              Profile
+            </Button>
+            <Button 
+              variant="outline"
+              onClick={async () => {
+                try {
+                  await supabase.auth.signOut();
+                  navigate('/');
+                } catch (error: any) {
+                  toast({
+                    variant: "destructive",
+                    title: "Error signing out",
+                    description: error.message,
+                  });
+                }
+              }}
+            >
+              Sign Out
+            </Button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
