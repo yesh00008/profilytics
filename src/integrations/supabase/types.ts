@@ -178,6 +178,62 @@ export type Database = {
           },
         ]
       }
+      hackathons: {
+        Row: {
+          created_at: string
+          description: string
+          end_date: string
+          id: string
+          is_online: boolean | null
+          location: string | null
+          max_team_size: number | null
+          organizer_id: string | null
+          prize_pool: string | null
+          registration_deadline: string | null
+          requirements: string | null
+          start_date: string
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          end_date: string
+          id?: string
+          is_online?: boolean | null
+          location?: string | null
+          max_team_size?: number | null
+          organizer_id?: string | null
+          prize_pool?: string | null
+          registration_deadline?: string | null
+          requirements?: string | null
+          start_date: string
+          title: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          end_date?: string
+          id?: string
+          is_online?: boolean | null
+          location?: string | null
+          max_team_size?: number | null
+          organizer_id?: string | null
+          prize_pool?: string | null
+          registration_deadline?: string | null
+          requirements?: string | null
+          start_date?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hackathons_organizer_id_fkey"
+            columns: ["organizer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       job_applications: {
         Row: {
           applicant_id: string | null
@@ -529,6 +585,50 @@ export type Database = {
         }
         Relationships: []
       }
+      resources: {
+        Row: {
+          content: string | null
+          contributor_id: string | null
+          created_at: string
+          description: string
+          id: string
+          title: string
+          type: string
+          updated_at: string
+          url: string | null
+        }
+        Insert: {
+          content?: string | null
+          contributor_id?: string | null
+          created_at?: string
+          description: string
+          id?: string
+          title: string
+          type: string
+          updated_at?: string
+          url?: string | null
+        }
+        Update: {
+          content?: string | null
+          contributor_id?: string | null
+          created_at?: string
+          description?: string
+          id?: string
+          title?: string
+          type?: string
+          updated_at?: string
+          url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "resources_contributor_id_fkey"
+            columns: ["contributor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       skills: {
         Row: {
           id: string
@@ -543,6 +643,62 @@ export type Database = {
           name?: string
         }
         Relationships: []
+      }
+      tech_events: {
+        Row: {
+          created_at: string
+          description: string
+          event_date: string
+          id: string
+          is_free: boolean | null
+          is_online: boolean | null
+          location: string | null
+          max_participants: number | null
+          organizer_id: string | null
+          registration_deadline: string | null
+          ticket_price: number | null
+          title: string
+          type: string
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          event_date: string
+          id?: string
+          is_free?: boolean | null
+          is_online?: boolean | null
+          location?: string | null
+          max_participants?: number | null
+          organizer_id?: string | null
+          registration_deadline?: string | null
+          ticket_price?: number | null
+          title: string
+          type: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          event_date?: string
+          id?: string
+          is_free?: boolean | null
+          is_online?: boolean | null
+          location?: string | null
+          max_participants?: number | null
+          organizer_id?: string | null
+          registration_deadline?: string | null
+          ticket_price?: number | null
+          title?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tech_events_organizer_id_fkey"
+            columns: ["organizer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

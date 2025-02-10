@@ -7,6 +7,7 @@ import { ThemeSupa } from '@supabase/auth-ui-shared';
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
+import { Briefcase, Calendar, Users, BookOpen, Trophy, Network } from "lucide-react";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -84,11 +85,53 @@ const Index = () => {
     );
   }
 
+  const dashboardItems = [
+    {
+      title: "Internships & Jobs",
+      icon: <Briefcase className="h-6 w-6" />,
+      description: "Find your next career opportunity",
+      link: "/jobs"
+    },
+    {
+      title: "Hackathons",
+      icon: <Trophy className="h-6 w-6" />,
+      description: "Participate in coding competitions",
+      link: "/hackathons"
+    },
+    {
+      title: "Tech Events",
+      icon: <Calendar className="h-6 w-6" />,
+      description: "Discover upcoming tech events",
+      link: "/events"
+    },
+    {
+      title: "Resources",
+      icon: <BookOpen className="h-6 w-6" />,
+      description: "Access learning materials and guides",
+      link: "/resources"
+    },
+    {
+      title: "Network",
+      icon: <Network className="h-6 w-6" />,
+      description: "Connect with other professionals",
+      link: "/network"
+    },
+    {
+      title: "Community",
+      icon: <Users className="h-6 w-6" />,
+      description: "Join discussions and share insights",
+      link: "/community"
+    }
+  ];
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold">Your Professional Network</h1>
+          <div>
+            <h1 className="text-3xl font-bold">Welcome to ProfiLytics</h1>
+            <p className="text-gray-600 mt-2">Your professional growth starts here</p>
+          </div>
           <Button 
             variant="outline"
             onClick={async () => {
@@ -107,18 +150,23 @@ const Index = () => {
             Sign Out
           </Button>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Profile Summary */}
-          <Card className="p-6">
-            <h2 className="text-xl font-semibold mb-4">Profile Summary</h2>
-            <p className="text-gray-600">Complete your profile to connect with professionals</p>
-          </Card>
-          
-          {/* Feed Preview */}
-          <Card className="md:col-span-2 p-6">
-            <h2 className="text-xl font-semibold mb-4">Your Feed</h2>
-            <p className="text-gray-600">Start connecting with other professionals to see their updates here</p>
-          </Card>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {dashboardItems.map((item, index) => (
+            <Card 
+              key={index}
+              className="p-6 hover:shadow-lg transition-shadow cursor-pointer"
+              onClick={() => navigate(item.link)}
+            >
+              <div className="flex items-center gap-4 mb-4">
+                <div className="p-2 bg-blue-100 rounded-lg">
+                  {item.icon}
+                </div>
+                <h2 className="text-xl font-semibold">{item.title}</h2>
+              </div>
+              <p className="text-gray-600">{item.description}</p>
+            </Card>
+          ))}
         </div>
       </div>
     </div>
