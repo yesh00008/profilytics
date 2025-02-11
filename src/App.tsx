@@ -10,6 +10,8 @@ import Jobs from "./pages/Jobs";
 import PostJob from "./pages/PostJob";
 import Profile from "./pages/Profile";
 import EditProfile from "./pages/EditProfile";
+import AddExperience from "./pages/AddExperience";
+import AddEducation from "./pages/AddEducation";
 import Events from "./pages/Events";
 import CreateEvent from "./pages/CreateEvent";
 import Hackathons from "./pages/Hackathons";
@@ -28,6 +30,8 @@ const App = () => (
           <Route path="/jobs/post" element={<PostJob />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/profile/edit" element={<EditProfile />} />
+          <Route path="/profile/add-experience" element={<AddExperience />} />
+          <Route path="/profile/add-education" element={<AddEducation />} />
           <Route path="/events" element={<Events />} />
           <Route path="/events/create" element={<CreateEvent />} />
           <Route path="/hackathons" element={<Hackathons />} />
