@@ -11,6 +11,7 @@ import PostJob from "./pages/PostJob";
 import Profile from "./pages/Profile";
 import Events from "./pages/Events";
 import CreateEvent from "./pages/CreateEvent";
+import Hackathons from "./pages/Hackathons";
 
 const queryClient = new QueryClient();
 
@@ -27,6 +28,7 @@ const App = () => (
           <Route path="/profile" element={<Profile />} />
           <Route path="/events" element={<Events />} />
           <Route path="/events/create" element={<CreateEvent />} />
+          <Route path="/hackathons" element={<Hackathons />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

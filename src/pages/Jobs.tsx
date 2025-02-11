@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Plus } from "lucide-react";
+import { Plus, ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 interface Job {
@@ -73,9 +73,18 @@ const Jobs = () => {
     <div className="min-h-screen bg-gray-50 p-8">
       <div className="max-w-7xl mx-auto">
         <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-3xl font-bold">Jobs & Internships</h1>
-            <p className="text-gray-600 mt-2">Find your next career opportunity</p>
+          <div className="flex items-center gap-4">
+            <Button
+              variant="ghost"
+              onClick={() => navigate('/')}
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Home
+            </Button>
+            <div>
+              <h1 className="text-3xl font-bold">Jobs & Internships</h1>
+              <p className="text-gray-600 mt-2">Find your next career opportunity</p>
+            </div>
           </div>
           {session && (
             <Button onClick={() => navigate("/jobs/post")} className="flex items-center gap-2">
