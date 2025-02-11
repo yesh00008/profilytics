@@ -51,6 +51,80 @@ export type Database = {
           },
         ]
       }
+      communities: {
+        Row: {
+          created_at: string
+          creator_id: string | null
+          description: string | null
+          id: string
+          link: string | null
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          creator_id?: string | null
+          description?: string | null
+          id?: string
+          link?: string | null
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          creator_id?: string | null
+          description?: string | null
+          id?: string
+          link?: string | null
+          name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "communities_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      community_members: {
+        Row: {
+          community_id: string
+          joined_at: string
+          profile_id: string
+          role: string | null
+        }
+        Insert: {
+          community_id: string
+          joined_at?: string
+          profile_id: string
+          role?: string | null
+        }
+        Update: {
+          community_id?: string
+          joined_at?: string
+          profile_id?: string
+          role?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_members_community_id_fkey"
+            columns: ["community_id"]
+            isOneToOne: false
+            referencedRelation: "communities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "community_members_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       connections: {
         Row: {
           addressee_id: string

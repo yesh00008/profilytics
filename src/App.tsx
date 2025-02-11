@@ -15,6 +15,12 @@ import AddEducation from "./pages/AddEducation";
 import Events from "./pages/Events";
 import CreateEvent from "./pages/CreateEvent";
 import Hackathons from "./pages/Hackathons";
+import Resources from "./pages/Resources";
+import CreateResource from "./pages/CreateResource";
+import Network from "./pages/Network";
+import Communities from "./pages/Communities";
+import CreateCommunity from "./pages/CreateCommunity";
+import AddSkills from "./pages/AddSkills";
 
 const queryClient = new QueryClient();
 
@@ -32,9 +38,15 @@ const App = () => (
           <Route path="/profile/edit" element={<EditProfile />} />
           <Route path="/profile/add-experience" element={<AddExperience />} />
           <Route path="/profile/add-education" element={<AddEducation />} />
+          <Route path="/profile/add-skills" element={<AddSkills />} />
           <Route path="/events" element={<Events />} />
           <Route path="/events/create" element={<CreateEvent />} />
           <Route path="/hackathons" element={<Hackathons />} />
+          <Route path="/resources" element={<Resources />} />
+          <Route path="/resources/create" element={<CreateResource />} />
+          <Route path="/network" element={<Network />} />
+          <Route path="/communities" element={<Communities />} />
+          <Route path="/communities/create" element={<CreateCommunity />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

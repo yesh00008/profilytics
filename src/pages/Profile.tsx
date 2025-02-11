@@ -1,11 +1,10 @@
-
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
-import { ArrowLeft, Pencil, Building2, GraduationCap } from "lucide-react";
+import { ArrowLeft, Pencil, Building2, GraduationCap, BookOpen } from "lucide-react";
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -13,9 +12,11 @@ const Profile = () => {
   const [profile, setProfile] = useState<any>(null);
   const [experiences, setExperiences] = useState<any[]>([]);
   const [education, setEducation] = useState<any[]>([]);
+  const [skills, setSkills] = useState<any[]>([]);
 
   useEffect(() => {
     loadProfile();
+    loadSkills();
   }, []);
 
   const loadProfile = async () => {
@@ -62,6 +63,33 @@ const Profile = () => {
     }
   };
 
+  const loadSkills = async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
+      const { data, error } = await supabase
+        .from('profile_skills')
+        .select(`
+          *,
+          skills:skill_id (
+            id,
+            name
+          )
+        `)
+        .eq('profile_id', session.user.id);
+
+      if (error) throw error;
+      setSkills(data || []);
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Error loading skills",
+        description: error.message,
+      });
+    }
+  };
+
   if (!profile) {
     return <div>Loading...</div>;
   }
@@ -78,7 +106,6 @@ const Profile = () => {
           Back to Home
         </Button>
 
-        {/* Cover and Profile Section */}
         <Card className="mb-6 relative">
           {profile.cover_url && (
             <div className="h-48 w-full bg-cover bg-center rounded-t-lg" style={{ backgroundImage: `url(${profile.cover_url})` }} />
@@ -118,7 +145,6 @@ const Profile = () => {
           </div>
         </Card>
 
-        {/* Experience Section */}
         <Card className="mb-6">
           <div className="p-6">
             <div className="flex items-center justify-between mb-4">
@@ -146,7 +172,6 @@ const Profile = () => {
           </div>
         </Card>
 
-        {/* Education Section */}
         <Card className="mb-6">
           <div className="p-6">
             <div className="flex items-center justify-between mb-4">
@@ -168,6 +193,30 @@ const Profile = () => {
                     {edu.end_date ? new Date(edu.end_date).toLocaleDateString() : 'Present'}
                   </p>
                   {edu.description && <p className="text-gray-700 mt-2">{edu.description}</p>}
+                </div>
+              ))}
+            </div>
+          </div>
+        </Card>
+
+        <Card className="mb-6">
+          <div className="p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-semibold flex items-center">
+                <BookOpen className="h-5 w-5 mr-2" />
+                Skills
+              </h2>
+              <Button variant="outline" onClick={() => navigate('/profile/add-skills')}>
+                Add Skills
+              </Button>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {skills.map((skill) => (
+                <div
+                  key={skill.skill_id}
+                  className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full"
+                >
+                  {skill.skills.name}
                 </div>
               ))}
             </div>

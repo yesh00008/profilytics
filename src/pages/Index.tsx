@@ -102,7 +102,7 @@ const Index = () => {
       title: "Community",
       icon: <Users className="h-6 w-6" />,
       description: "Join discussions and share insights",
-      link: "/community"
+      link: "/communities"
     }
   ];
 
