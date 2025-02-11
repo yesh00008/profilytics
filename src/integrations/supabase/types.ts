@@ -259,6 +259,7 @@ export type Database = {
           end_date: string
           id: string
           is_online: boolean | null
+          link: string | null
           location: string | null
           max_team_size: number | null
           organizer_id: string | null
@@ -274,6 +275,7 @@ export type Database = {
           end_date: string
           id?: string
           is_online?: boolean | null
+          link?: string | null
           location?: string | null
           max_team_size?: number | null
           organizer_id?: string | null
@@ -289,6 +291,7 @@ export type Database = {
           end_date?: string
           id?: string
           is_online?: boolean | null
+          link?: string | null
           location?: string | null
           max_team_size?: number | null
           organizer_id?: string | null
@@ -756,6 +759,7 @@ export type Database = {
           id: string
           is_free: boolean | null
           is_online: boolean | null
+          link: string | null
           location: string | null
           max_participants: number | null
           organizer_id: string | null
@@ -771,6 +775,7 @@ export type Database = {
           id?: string
           is_free?: boolean | null
           is_online?: boolean | null
+          link?: string | null
           location?: string | null
           max_participants?: number | null
           organizer_id?: string | null
@@ -786,6 +791,7 @@ export type Database = {
           id?: string
           is_free?: boolean | null
           is_online?: boolean | null
+          link?: string | null
           location?: string | null
           max_participants?: number | null
           organizer_id?: string | null

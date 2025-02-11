@@ -70,7 +70,6 @@ const Hackathons = () => {
               <Card
                 key={hackathon.id}
                 className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
-                onClick={() => navigate(`/hackathons/${hackathon.id}`)}
               >
                 <div className="p-6">
                   <h2 className="text-xl font-semibold mb-2">{hackathon.title}</h2>
@@ -103,6 +102,25 @@ const Hackathons = () => {
                     <span className="text-sm text-gray-500">
                       Organized by {hackathon.profiles?.full_name || 'Unknown'}
                     </span>
+                  </div>
+                  <div className="mt-4 flex justify-between items-center">
+                    <Button
+                      variant="outline"
+                      onClick={() => navigate(`/hackathons/${hackathon.id}`)}
+                    >
+                      View Details
+                    </Button>
+                    {hackathon.link && (
+                      <Button
+                        variant="default"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          window.open(hackathon.link, '_blank');
+                        }}
+                      >
+                        Visit Hackathon Page
+                      </Button>
+                    )}
                   </div>
                 </div>
               </Card>

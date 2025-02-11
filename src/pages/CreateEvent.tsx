@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -22,6 +21,7 @@ const CreateEvent = () => {
     registration_deadline: "",
     is_free: true,
     ticket_price: "",
+    link: "",
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -217,6 +217,20 @@ const CreateEvent = () => {
                 />
               </div>
             )}
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Event Link
+              </label>
+              <input
+                type="url"
+                name="link"
+                value={formData.link}
+                onChange={handleChange}
+                className="w-full p-2 border rounded-md"
+                placeholder="Enter event website or registration link"
+              />
+            </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">

@@ -70,7 +70,6 @@ const Events = () => {
               <Card
                 key={event.id}
                 className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
-                onClick={() => navigate(`/events/${event.id}`)}
               >
                 <div className="p-6">
                   <h2 className="text-xl font-semibold mb-2">{event.title}</h2>
@@ -100,6 +99,25 @@ const Events = () => {
                     <span className="text-sm font-medium text-blue-600">
                       {event.is_free ? 'Free' : `$${event.ticket_price}`}
                     </span>
+                  </div>
+                  <div className="mt-4 flex justify-between items-center">
+                    <Button
+                      variant="outline"
+                      onClick={() => navigate(`/events/${event.id}`)}
+                    >
+                      View Details
+                    </Button>
+                    {event.link && (
+                      <Button
+                        variant="default"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          window.open(event.link, '_blank');
+                        }}
+                      >
+                        Visit Event Page
+                      </Button>
+                    )}
                   </div>
                 </div>
               </Card>
