@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
-import { ArrowLeft, Pencil, Building2, GraduationCap, Trophy, Award } from "lucide-react";
+import { ArrowLeft, Pencil, Building2, GraduationCap } from "lucide-react";
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -97,6 +97,11 @@ const Profile = () => {
                   <h1 className="text-2xl font-bold">{profile.full_name}</h1>
                   <p className="text-gray-600">{profile.headline}</p>
                   {profile.location && <p className="text-gray-500">{profile.location}</p>}
+                  {profile.website && (
+                    <a href={profile.website} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">
+                      {profile.website}
+                    </a>
+                  )}
                 </div>
               </div>
               <Button onClick={() => navigate('/profile/edit')}>

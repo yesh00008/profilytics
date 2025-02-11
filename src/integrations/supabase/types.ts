@@ -629,6 +629,36 @@ export type Database = {
           },
         ]
       }
+      skill_posts: {
+        Row: {
+          post_id: string
+          skill_id: string
+        }
+        Insert: {
+          post_id: string
+          skill_id: string
+        }
+        Update: {
+          post_id?: string
+          skill_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "skill_posts_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "skill_posts_skill_id_fkey"
+            columns: ["skill_id"]
+            isOneToOne: false
+            referencedRelation: "skills"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       skills: {
         Row: {
           id: string
