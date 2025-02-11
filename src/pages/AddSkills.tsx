@@ -38,13 +38,15 @@ const AddSkills = () => {
 
       // First, insert all skills and get their IDs
       const skillPromises = skills.map(async (skillName) => {
-        const { data, error } = await supabase
+        const { data: existingSkill, error: fetchError } = await supabase
           .from('skills')
           .select('id')
           .eq('name', skillName)
-          .single();
+          .maybeSingle();
 
-        if (data) return data.id;
+        if (fetchError) throw fetchError;
+
+        if (existingSkill) return existingSkill.id;
 
         const { data: newSkill, error: insertError } = await supabase
           .from('skills')
