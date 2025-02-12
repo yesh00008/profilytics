@@ -394,6 +394,7 @@ export type Database = {
           employment_type: string | null
           expires_at: string
           id: string
+          link: string | null
           location: string
           recruiter_id: string | null
           salary_range: string | null
@@ -406,6 +407,7 @@ export type Database = {
           employment_type?: string | null
           expires_at: string
           id?: string
+          link?: string | null
           location: string
           recruiter_id?: string | null
           salary_range?: string | null
@@ -418,6 +420,7 @@ export type Database = {
           employment_type?: string | null
           expires_at?: string
           id?: string
+          link?: string | null
           location?: string
           recruiter_id?: string | null
           salary_range?: string | null
