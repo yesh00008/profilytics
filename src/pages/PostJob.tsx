@@ -18,6 +18,7 @@ const PostJob = () => {
     description: "",
     salary_range: "",
     employment_type: "",
+    link: "", // Added link field
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -153,6 +154,20 @@ const PostJob = () => {
                 onChange={handleChange}
                 className="w-full p-2 border rounded-md"
                 placeholder="e.g., $80,000 - $120,000"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Application Link
+              </label>
+              <input
+                type="url"
+                name="link"
+                value={formData.link}
+                onChange={handleChange}
+                className="w-full p-2 border rounded-md"
+                placeholder="https://..."
               />
             </div>
 
