@@ -7,7 +7,8 @@ import { ThemeSupa } from '@supabase/auth-ui-shared';
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
-import { Briefcase, Calendar, Users, BookOpen, Trophy, Network, UserCircle } from "lucide-react";
+import { Briefcase, Calendar, Users, BookOpen, Trophy, Network } from "lucide-react";
+import Navbar from "@/components/Navbar";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -109,38 +110,11 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <Navbar />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-3xl font-bold">Welcome to ProfiLytics</h1>
-            <p className="text-gray-600 mt-2">Your professional growth starts here</p>
-          </div>
-          <div className="flex gap-4">
-            <Button 
-              variant="outline"
-              onClick={() => navigate('/profile')}
-            >
-              <UserCircle className="h-4 w-4 mr-2" />
-              Profile
-            </Button>
-            <Button 
-              variant="outline"
-              onClick={async () => {
-                try {
-                  await supabase.auth.signOut();
-                  navigate('/');
-                } catch (error: any) {
-                  toast({
-                    variant: "destructive",
-                    title: "Error signing out",
-                    description: error.message,
-                  });
-                }
-              }}
-            >
-              Sign Out
-            </Button>
-          </div>
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold">Welcome to ProfiLytics</h1>
+          <p className="text-gray-600 mt-2">Your professional growth starts here</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

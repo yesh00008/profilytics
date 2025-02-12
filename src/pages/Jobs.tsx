@@ -1,11 +1,11 @@
-
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Plus, ArrowLeft, ExternalLink } from "lucide-react";
+import { Plus, ArrowLeft, ExternalLink, Trash } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import Navbar from "@/components/Navbar";
 
 interface Job {
   id: string;
@@ -17,6 +17,7 @@ interface Job {
   employment_type?: string;
   link?: string | null;
   created_at: string;
+  recruiter_id: string;
 }
 
 const Jobs = () => {
@@ -66,26 +67,42 @@ const Jobs = () => {
     }
   };
 
+  const handleDelete = async (jobId: string) => {
+    try {
+      const { error } = await supabase
+        .from('jobs')
+        .delete()
+        .eq('id', jobId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Job posting deleted successfully",
+      });
+      
+      fetchJobs();
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.message,
+      });
+    }
+  };
+
   if (loading) {
     return <div className="p-8 text-center">Loading jobs...</div>;
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen bg-gray-50">
+      <Navbar />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex justify-between items-center mb-8">
-          <div className="flex items-center gap-4">
-            <Button
-              variant="ghost"
-              onClick={() => navigate('/')}
-            >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Home
-            </Button>
-            <div>
-              <h1 className="text-3xl font-bold">Jobs & Internships</h1>
-              <p className="text-gray-600 mt-2">Find your next career opportunity</p>
-            </div>
+          <div>
+            <h1 className="text-3xl font-bold">Jobs & Internships</h1>
+            <p className="text-gray-600 mt-2">Find your next career opportunity</p>
           </div>
           {session && (
             <Button onClick={() => navigate("/jobs/post")} className="flex items-center gap-2">
@@ -117,19 +134,32 @@ const Jobs = () => {
                     </span>
                   )}
                 </div>
-                {job.link && (
-                  <Button
-                    variant="outline"
-                    className="w-full"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      window.open(job.link, '_blank');
-                    }}
-                  >
-                    <ExternalLink className="h-4 w-4 mr-2" />
-                    Apply Now
-                  </Button>
-                )}
+                <div className="flex gap-2">
+                  {job.link && (
+                    <Button
+                      variant="outline"
+                      className="flex-1"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        window.open(job.link, '_blank');
+                      }}
+                    >
+                      <ExternalLink className="h-4 w-4 mr-2" />
+                      Apply Now
+                    </Button>
+                  )}
+                  {session?.user?.id === job.recruiter_id && (
+                    <Button
+                      variant="destructive"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDelete(job.id);
+                      }}
+                    >
+                      <Trash className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
               </div>
             </Card>
           ))}
