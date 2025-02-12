@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Plus, ArrowLeft } from "lucide-react";
+import { Plus, ArrowLeft, ExternalLink } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 interface Job {
@@ -15,6 +15,7 @@ interface Job {
   description: string;
   salary_range?: string;
   employment_type?: string;
+  link?: string | null;
   created_at: string;
 }
 
@@ -96,21 +97,38 @@ const Jobs = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {jobs.map((job) => (
-            <Card key={job.id} className="p-6 hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate(`/jobs/${job.id}`)}>
-              <h2 className="text-xl font-semibold mb-2">{job.title}</h2>
-              <p className="text-blue-600 font-medium mb-2">{job.company}</p>
-              <p className="text-gray-600 mb-4">{job.location}</p>
-              <p className="text-gray-700 line-clamp-3">{job.description}</p>
-              <div className="mt-4 flex flex-wrap gap-2">
-                {job.employment_type && (
-                  <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
-                    {job.employment_type}
-                  </span>
-                )}
-                {job.salary_range && (
-                  <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">
-                    {job.salary_range}
-                  </span>
+            <Card key={job.id} className="p-6 hover:shadow-lg transition-shadow">
+              <div onClick={() => navigate(`/jobs/${job.id}`)} className="cursor-pointer">
+                <h2 className="text-xl font-semibold mb-2">{job.title}</h2>
+                <p className="text-blue-600 font-medium mb-2">{job.company}</p>
+                <p className="text-gray-600 mb-4">{job.location}</p>
+                <p className="text-gray-700 line-clamp-3">{job.description}</p>
+              </div>
+              <div className="mt-4 space-y-4">
+                <div className="flex flex-wrap gap-2">
+                  {job.employment_type && (
+                    <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
+                      {job.employment_type}
+                    </span>
+                  )}
+                  {job.salary_range && (
+                    <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">
+                      {job.salary_range}
+                    </span>
+                  )}
+                </div>
+                {job.link && (
+                  <Button
+                    variant="outline"
+                    className="w-full"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      window.open(job.link, '_blank');
+                    }}
+                  >
+                    <ExternalLink className="h-4 w-4 mr-2" />
+                    Apply Now
+                  </Button>
                 )}
               </div>
             </Card>
