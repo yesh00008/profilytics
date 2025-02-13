@@ -1,11 +1,9 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft } from "lucide-react";
 
 interface HackathonFormData {
   title: string;
@@ -84,17 +82,8 @@ const CreateHackathon = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
-      <div className="max-w-3xl mx-auto">
-        <Button
-          variant="ghost"
-          className="mb-6"
-          onClick={() => navigate("/hackathons")}
-        >
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Hackathons
-        </Button>
-
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Card className="p-6">
           <h1 className="text-2xl font-bold mb-6">Create a New Hackathon</h1>
           <form onSubmit={handleSubmit} className="space-y-6">
