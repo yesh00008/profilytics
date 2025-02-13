@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -81,10 +80,20 @@ const Hackathons = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("You must be logged in to post a hackathon");
 
+      // Create a clean data object with proper date handling
       const hackathonData = {
-        ...formData,
-        organizer_id: user.id,
+        title: formData.title,
+        description: formData.description,
+        start_date: formData.start_date || null,
+        end_date: formData.end_date || null,
+        location: formData.location,
+        is_online: formData.is_online,
         max_team_size: formData.max_team_size ? parseInt(formData.max_team_size) : null,
+        requirements: formData.requirements,
+        prize_pool: formData.prize_pool,
+        link: formData.link,
+        registration_deadline: formData.registration_deadline || null,
+        organizer_id: user.id,
       };
 
       if (editingHackathon) {
@@ -184,6 +193,12 @@ const Hackathons = () => {
     } else {
       setFormData({ ...formData, [name]: value });
     }
+  };
+
+  const formatDateForInput = (dateString: string | null) => {
+    if (!dateString) return "";
+    const date = new Date(dateString);
+    return date.toISOString().slice(0, 16); // Format as YYYY-MM-DDTHH:mm
   };
 
   if (loading && !showForm) {
@@ -304,6 +319,19 @@ const Hackathons = () => {
                   name="end_date"
                   required
                   value={formData.end_date}
+                  onChange={handleChange}
+                  className="w-full p-2 border rounded-md"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Registration Deadline
+                </label>
+                <input
+                  type="datetime-local"
+                  name="registration_deadline"
+                  value={formData.registration_deadline}
                   onChange={handleChange}
                   className="w-full p-2 border rounded-md"
                 />
