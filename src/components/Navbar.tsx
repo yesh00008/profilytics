@@ -71,9 +71,6 @@ const Navbar = () => {
                 <DropdownMenuItem onClick={() => navigate('/profile')}>
                   Profile
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate('/settings')}>
-                  Settings
-                </DropdownMenuItem>
                 <DropdownMenuItem onClick={handleSignOut}>
                   Sign Out
                 </DropdownMenuItem>
@@ -114,16 +111,6 @@ const Navbar = () => {
               }}
             >
               Profile
-            </Button>
-            <Button
-              variant="ghost"
-              className="w-full justify-start"
-              onClick={() => {
-                navigate('/settings');
-                setIsMenuOpen(false);
-              }}
-            >
-              Settings
             </Button>
             <Button
               variant="outline"
