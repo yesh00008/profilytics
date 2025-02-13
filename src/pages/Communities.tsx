@@ -40,7 +40,12 @@ const Communities = () => {
     try {
       const { data, error } = await supabase
         .from('communities')
-        .select('*, profiles(full_name)')
+        .select(`
+          *,
+          profiles!communities_creator_id_fkey (
+            full_name
+          )
+        `)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
