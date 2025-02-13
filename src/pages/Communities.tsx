@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -167,8 +166,8 @@ const Communities = () => {
     <div className="min-h-screen bg-gray-50">
       <Navbar />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold">Communities</h1>
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+          <h1 className="text-2xl sm:text-3xl font-bold">Communities</h1>
           <Button 
             onClick={() => {
               setShowForm(!showForm);
@@ -181,7 +180,7 @@ const Communities = () => {
                 });
               }
             }}
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 w-full sm:w-auto"
           >
             <Plus className="h-4 w-4" />
             {showForm ? "Close Form" : "Create Community"}
@@ -189,11 +188,11 @@ const Communities = () => {
         </div>
 
         {showForm && (
-          <Card className="p-6 mb-8">
+          <Card className="p-4 sm:p-6 mb-8">
             <h2 className="text-xl font-semibold mb-4">
               {editingCommunity ? "Edit Community" : "Create a New Community"}
             </h2>
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Community Name *
@@ -245,11 +244,11 @@ const Communities = () => {
           </Card>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 gap-4 sm:gap-6">
           {communities.map((community) => (
-            <Card key={community.id} className="p-6">
+            <Card key={community.id} className="p-4 sm:p-6">
               <div className="flex justify-between items-start">
-                <h2 className="text-xl font-semibold mb-2">{community.name}</h2>
+                <h2 className="text-lg sm:text-xl font-semibold mb-2">{community.name}</h2>
                 {userId === community.creator_id && (
                   <div className="flex gap-2">
                     <Button
@@ -269,8 +268,8 @@ const Communities = () => {
                   </div>
                 )}
               </div>
-              <p className="text-gray-600 mb-4">{community.description}</p>
-              <div className="flex items-center justify-between">
+              <p className="text-gray-600 mb-4 text-sm sm:text-base">{community.description}</p>
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
                 <div className="flex items-center text-sm text-gray-500">
                   <Users className="h-4 w-4 mr-1" />
                   <span>Created by {community.profiles?.full_name}</span>
@@ -280,6 +279,7 @@ const Communities = () => {
                     variant="outline"
                     size="sm"
                     onClick={() => window.open(community.link, '_blank')}
+                    className="w-full sm:w-auto"
                   >
                     <ExternalLink className="h-4 w-4 mr-2" />
                     Visit
@@ -289,7 +289,7 @@ const Communities = () => {
             </Card>
           ))}
           {communities.length === 0 && (
-            <div className="col-span-full text-center py-12">
+            <div className="text-center py-12">
               <p className="text-gray-500">No communities found. Be the first to create one!</p>
             </div>
           )}
