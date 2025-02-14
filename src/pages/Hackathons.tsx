@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Calendar, MapPin, Users, Trophy, Plus, Trash, Edit, ExternalLink } from "lucide-react";
+import { Calendar, MapPin, Users, Trophy, Plus, Trash, Edit, ExternalLink, Search, ArrowLeft } from "lucide-react";
 import { format } from "date-fns";
 import Navbar from "@/components/Navbar";
 
@@ -42,6 +42,9 @@ const Hackathons = () => {
     registration_deadline: "",
   });
 
+  const [searchQuery, setSearchQuery] = useState("");
+  const [allHackathons, setAllHackathons] = useState<any[]>([]);
+
   useEffect(() => {
     loadHackathons();
     checkUser();
@@ -61,6 +64,7 @@ const Hackathons = () => {
 
       if (error) throw error;
       setHackathons(data || []);
+      setAllHackathons(data || []);
     } catch (error: any) {
       toast({
         variant: "destructive",
@@ -70,6 +74,16 @@ const Hackathons = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+    const filteredHackathons = allHackathons.filter(hackathon => 
+      hackathon.title.toLowerCase().includes(query.toLowerCase()) ||
+      hackathon.description.toLowerCase().includes(query.toLowerCase()) ||
+      hackathon.location?.toLowerCase().includes(query.toLowerCase())
+    );
+    setHackathons(filteredHackathons);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -216,7 +230,16 @@ const Hackathons = () => {
     <div className="min-h-screen bg-gray-50">
       <Navbar />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex justify-between items-center mb-6">
+        <Button
+          variant="ghost"
+          onClick={() => navigate("/")}
+          className="mb-6"
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Back to Home
+        </Button>
+
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
           <h1 className="text-3xl font-bold">Hackathons</h1>
           <Button 
             onClick={() => {
@@ -244,6 +267,21 @@ const Hackathons = () => {
             {showForm ? "Close Form" : "Post Hackathon"}
           </Button>
         </div>
+
+        {!showForm && (
+          <div className="mb-6">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+              <input
+                type="text"
+                placeholder="Search hackathons by title, description, or location..."
+                value={searchQuery}
+                onChange={(e) => handleSearch(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+          </div>
+        )}
 
         {showForm && (
           <Card className="p-6 mb-8">

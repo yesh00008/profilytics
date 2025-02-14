@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -135,7 +134,7 @@ const Events = () => {
                       onClick={() => window.open(event.link, '_blank')}
                     >
                       <ExternalLink className="h-4 w-4 mr-2" />
-                      Visit Event Page
+                      Visit Event
                     </Button>
                   )}
                 </div>

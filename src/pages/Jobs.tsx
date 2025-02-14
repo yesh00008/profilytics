@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -23,7 +22,7 @@ interface Job {
 
 const Jobs = () => {
   const [jobs, setJobs] = useState<Job[]>([]);
-  const [allJobs, setAllJobs] = useState<Job[]>([]); // Store all jobs for filtering
+  const [allJobs, setAllJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
   const [session, setSession] = useState<any>(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -52,22 +51,14 @@ const Jobs = () => {
 
   const fetchJobs = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
       const { data, error } = await supabase
         .from("jobs")
         .select("*")
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      
-      // Add a local property to identify user's own posts
-      const jobsWithOwnership = data?.map(job => ({
-        ...job,
-        isOwnJob: user?.id === job.recruiter_id
-      })) || [];
-      
-      setJobs(jobsWithOwnership);
-      setAllJobs(jobsWithOwnership);
+      setJobs(data || []);
+      setAllJobs(data || []);
     } catch (error: any) {
       toast({
         variant: "destructive",
@@ -201,13 +192,13 @@ const Jobs = () => {
                     <Button
                       variant="default"
                       className="flex-1"
-                      onClick={() => window.open(job.link, '_blank')}
+                      onClick={() => window.open(job.link!, '_blank')}
                     >
                       <ExternalLink className="h-4 w-4 mr-2" />
                       Visit Job Page
                     </Button>
                   )}
-                  {job.isOwnJob && (
+                  {session?.user?.id === job.recruiter_id && (
                     <Button
                       variant="destructive"
                       onClick={() => handleDelete(job.id)}
