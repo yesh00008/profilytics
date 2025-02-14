@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Calendar, MapPin, Users, Trophy, Plus, Trash, Edit, ExternalLink, Search, ArrowLeft } from "lucide-react";
 import { format } from "date-fns";
 import Navbar from "@/components/Navbar";
+import { useNavigate } from "react-router-dom";
 
 interface HackathonFormData {
   title: string;
@@ -23,11 +24,14 @@ interface HackathonFormData {
 
 const Hackathons = () => {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [hackathons, setHackathons] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [editingHackathon, setEditingHackathon] = useState<any>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [allHackathons, setAllHackathons] = useState<any[]>([]);
   const [formData, setFormData] = useState<HackathonFormData>({
     title: "",
     description: "",
@@ -41,9 +45,6 @@ const Hackathons = () => {
     link: "",
     registration_deadline: "",
   });
-
-  const [searchQuery, setSearchQuery] = useState("");
-  const [allHackathons, setAllHackathons] = useState<any[]>([]);
 
   useEffect(() => {
     loadHackathons();
