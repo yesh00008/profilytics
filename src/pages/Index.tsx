@@ -62,7 +62,7 @@ const Index = () => {
                 },
               },
             }}
-            providers={['google']}
+            providers={[]} // Removed Google provider
           />
         </Card>
       </div>

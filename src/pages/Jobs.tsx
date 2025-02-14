@@ -1,9 +1,10 @@
+
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Plus, ArrowLeft, ExternalLink, Trash } from "lucide-react";
+import { Plus, ArrowLeft, ExternalLink, Trash, Search } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 
@@ -22,8 +23,10 @@ interface Job {
 
 const Jobs = () => {
   const [jobs, setJobs] = useState<Job[]>([]);
+  const [allJobs, setAllJobs] = useState<Job[]>([]); // Store all jobs for filtering
   const [loading, setLoading] = useState(true);
   const [session, setSession] = useState<any>(null);
+  const [searchQuery, setSearchQuery] = useState("");
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -56,6 +59,7 @@ const Jobs = () => {
 
       if (error) throw error;
       setJobs(data || []);
+      setAllJobs(data || []);
     } catch (error: any) {
       toast({
         variant: "destructive",
@@ -91,6 +95,17 @@ const Jobs = () => {
     }
   };
 
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+    const filteredJobs = allJobs.filter(job => 
+      job.title.toLowerCase().includes(query.toLowerCase()) ||
+      job.company.toLowerCase().includes(query.toLowerCase()) ||
+      job.description.toLowerCase().includes(query.toLowerCase()) ||
+      (job.employment_type && job.employment_type.toLowerCase().includes(query.toLowerCase()))
+    );
+    setJobs(filteredJobs);
+  };
+
   if (loading) {
     return <div className="p-8 text-center">Loading jobs...</div>;
   }
@@ -99,7 +114,16 @@ const Jobs = () => {
     <div className="min-h-screen bg-gray-50">
       <Navbar />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex justify-between items-center mb-8">
+        <Button
+          variant="ghost"
+          onClick={() => navigate("/")}
+          className="mb-6"
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Back to Home
+        </Button>
+
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
           <div>
             <h1 className="text-3xl font-bold">Jobs & Internships</h1>
             <p className="text-gray-600 mt-2">Find your next career opportunity</p>
@@ -110,6 +134,19 @@ const Jobs = () => {
               Post a Job
             </Button>
           )}
+        </div>
+
+        <div className="mb-6">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+            <input
+              type="text"
+              placeholder="Search jobs by title, company, or type..."
+              value={searchQuery}
+              onChange={(e) => handleSearch(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -165,7 +202,9 @@ const Jobs = () => {
           ))}
           {jobs.length === 0 && (
             <div className="col-span-full text-center py-12">
-              <p className="text-gray-500">No jobs posted yet.</p>
+              <p className="text-gray-500">
+                {searchQuery ? "No jobs found matching your search." : "No jobs posted yet."}
+              </p>
             </div>
           )}
         </div>
