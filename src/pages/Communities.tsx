@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Plus, Trash, Edit, ExternalLink, Users } from "lucide-react";
+import { Plus, Trash, Edit, ExternalLink, Users, Search } from "lucide-react";
 import Navbar from "@/components/Navbar";
 
 interface CommunityFormData {
@@ -24,6 +24,8 @@ const Communities = () => {
     description: "",
     link: "",
   });
+  const [searchQuery, setSearchQuery] = useState("");
+  const [allCommunities, setAllCommunities] = useState<any[]>([]);
 
   useEffect(() => {
     loadCommunities();
@@ -49,6 +51,7 @@ const Communities = () => {
 
       if (error) throw error;
       setCommunities(data || []);
+      setAllCommunities(data || []);
     } catch (error: any) {
       toast({
         variant: "destructive",
@@ -58,6 +61,15 @@ const Communities = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+    const filteredCommunities = allCommunities.filter(community => 
+      community.name.toLowerCase().includes(query.toLowerCase()) ||
+      community.description.toLowerCase().includes(query.toLowerCase())
+    );
+    setCommunities(filteredCommunities);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -186,6 +198,21 @@ const Communities = () => {
             {showForm ? "Close Form" : "Create Community"}
           </Button>
         </div>
+
+        {!showForm && (
+          <div className="mb-6">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+              <input
+                type="text"
+                placeholder="Search communities by name or description..."
+                value={searchQuery}
+                onChange={(e) => handleSearch(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+          </div>
+        )}
 
         {showForm && (
           <Card className="p-4 sm:p-6 mb-8">

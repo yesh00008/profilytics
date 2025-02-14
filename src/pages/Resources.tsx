@@ -1,17 +1,18 @@
-
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
-import { ArrowLeft, Plus, ExternalLink, Pencil, Trash } from "lucide-react";
+import { ArrowLeft, Plus, ExternalLink, Pencil, Trash, Search } from "lucide-react";
 
 const Resources = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [resources, setResources] = useState<any[]>([]);
   const [session, setSession] = useState<any>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [allResources, setAllResources] = useState<any[]>([]);
 
   useEffect(() => {
     loadResources();
@@ -38,6 +39,7 @@ const Resources = () => {
 
       if (error) throw error;
       setResources(data || []);
+      setAllResources(data || []);
     } catch (error: any) {
       toast({
         variant: "destructive",
@@ -45,6 +47,16 @@ const Resources = () => {
         description: error.message,
       });
     }
+  };
+
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+    const filteredResources = allResources.filter(resource => 
+      resource.title.toLowerCase().includes(query.toLowerCase()) ||
+      resource.description.toLowerCase().includes(query.toLowerCase()) ||
+      resource.type?.toLowerCase().includes(query.toLowerCase())
+    );
+    setResources(filteredResources);
   };
 
   const handleDelete = async (id: string) => {
@@ -90,7 +102,20 @@ const Resources = () => {
           )}
         </div>
 
-        <h1 className="text-3xl font-bold mb-8">Learning Resources</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold mb-6">Learning Resources</h1>
+        
+        <div className="mb-6">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+            <input
+              type="text"
+              placeholder="Search resources by title, description, or type..."
+              value={searchQuery}
+              onChange={(e) => handleSearch(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+        </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {resources.map((resource) => (
