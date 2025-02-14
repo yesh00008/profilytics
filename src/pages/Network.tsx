@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -26,24 +25,32 @@ const Network = () => {
 
   useEffect(() => {
     checkUser();
-    loadProfiles();
   }, []);
+
+  useEffect(() => {
+    if (currentUser) {
+      loadProfiles();
+    }
+  }, [currentUser]);
 
   const checkUser = async () => {
     const { data: { user } } = await supabase.auth.getUser();
-    setCurrentUser(user?.id || null);
+    if (!user) {
+      navigate('/auth');
+      return;
+    }
+    setCurrentUser(user.id);
   };
 
   const loadProfiles = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not authenticated");
+      if (!currentUser) return;
 
       // Get all profiles except current user
       const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
         .select('id, full_name, headline, avatar_url, location')
-        .neq('id', user.id);
+        .neq('id', currentUser);
 
       if (profilesError) throw profilesError;
 
@@ -51,14 +58,15 @@ const Network = () => {
       const { data: connectionsData, error: connectionsError } = await supabase
         .from('connections')
         .select('*')
-        .or(`requester_id.eq.${user.id},addressee_id.eq.${user.id}`);
+        .or(`requester_id.eq.${currentUser},addressee_id.eq.${currentUser}`);
 
       if (connectionsError) throw connectionsError;
 
       // Combine profiles with connection status
       const profilesWithStatus = profilesData.map((profile: Profile) => {
         const connection = connectionsData?.find(
-          (conn: any) => conn.requester_id === profile.id || conn.addressee_id === profile.id
+          (conn: any) => (conn.requester_id === profile.id && conn.addressee_id === currentUser) || 
+                        (conn.addressee_id === profile.id && conn.requester_id === currentUser)
         );
         return {
           ...profile,
