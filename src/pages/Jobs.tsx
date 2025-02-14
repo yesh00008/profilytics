@@ -52,14 +52,22 @@ const Jobs = () => {
 
   const fetchJobs = async () => {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
       const { data, error } = await supabase
         .from("jobs")
         .select("*")
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      setJobs(data || []);
-      setAllJobs(data || []);
+      
+      // Add a local property to identify user's own posts
+      const jobsWithOwnership = data?.map(job => ({
+        ...job,
+        isOwnJob: user?.id === job.recruiter_id
+      })) || [];
+      
+      setJobs(jobsWithOwnership);
+      setAllJobs(jobsWithOwnership);
     } catch (error: any) {
       toast({
         variant: "destructive",
@@ -72,7 +80,24 @@ const Jobs = () => {
   };
 
   const handleDelete = async (jobId: string) => {
+    if (!confirm("Are you sure you want to delete this job posting?")) {
+      return;
+    }
+
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      // Verify ownership before deletion
+      const { data: jobData } = await supabase
+        .from('jobs')
+        .select('recruiter_id')
+        .eq('id', jobId)
+        .single();
+
+      if (!jobData || jobData.recruiter_id !== user?.id) {
+        throw new Error("You don't have permission to delete this job posting");
+      }
+
       const { error } = await supabase
         .from('jobs')
         .delete()
@@ -152,7 +177,7 @@ const Jobs = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {jobs.map((job) => (
             <Card key={job.id} className="p-6 hover:shadow-lg transition-shadow">
-              <div onClick={() => navigate(`/jobs/${job.id}`)} className="cursor-pointer">
+              <div className="cursor-pointer">
                 <h2 className="text-xl font-semibold mb-2">{job.title}</h2>
                 <p className="text-blue-600 font-medium mb-2">{job.company}</p>
                 <p className="text-gray-600 mb-4">{job.location}</p>
@@ -174,24 +199,18 @@ const Jobs = () => {
                 <div className="flex gap-2">
                   {job.link && (
                     <Button
-                      variant="outline"
+                      variant="default"
                       className="flex-1"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        window.open(job.link, '_blank');
-                      }}
+                      onClick={() => window.open(job.link, '_blank')}
                     >
                       <ExternalLink className="h-4 w-4 mr-2" />
-                      Apply Now
+                      Visit Job Page
                     </Button>
                   )}
-                  {session?.user?.id === job.recruiter_id && (
+                  {job.isOwnJob && (
                     <Button
                       variant="destructive"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDelete(job.id);
-                      }}
+                      onClick={() => handleDelete(job.id)}
                     >
                       <Trash className="h-4 w-4" />
                     </Button>
