@@ -20,6 +20,7 @@ import CreateHackathon from "./pages/CreateHackathon";
 import Resources from "./pages/Resources";
 import CreateResource from "./pages/CreateResource";
 import Network from "./pages/Network";
+import Messages from "./pages/Messages";
 import Communities from "./pages/Communities";
 import CreateCommunity from "./pages/CreateCommunity";
 
@@ -47,6 +48,7 @@ const App = () => (
           <Route path="/resources" element={<Resources />} />
           <Route path="/resources/create" element={<CreateResource />} />
           <Route path="/network" element={<Network />} />
+          <Route path="/messages/:userId" element={<Messages />} />
           <Route path="/communities" element={<Communities />} />
           <Route path="/communities/create" element={<CreateCommunity />} />
           <Route path="*" element={<NotFound />} />
