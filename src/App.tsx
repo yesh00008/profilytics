@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -12,9 +11,11 @@ import Profile from "./pages/Profile";
 import EditProfile from "./pages/EditProfile";
 import AddExperience from "./pages/AddExperience";
 import AddEducation from "./pages/AddEducation";
+import AddSkills from "./pages/AddSkills";
 import Events from "./pages/Events";
 import CreateEvent from "./pages/CreateEvent";
 import Hackathons from "./pages/Hackathons";
+import CreateHackathon from "./pages/CreateHackathon";
 import Resources from "./pages/Resources";
 import CreateResource from "./pages/CreateResource";
 import Network from "./pages/Network";
@@ -42,6 +43,7 @@ const App = () => (
           <Route path="/events" element={<Events />} />
           <Route path="/events/create" element={<CreateEvent />} />
           <Route path="/hackathons" element={<Hackathons />} />
+          <Route path="/hackathons/create" element={<CreateHackathon />} />
           <Route path="/resources" element={<Resources />} />
           <Route path="/resources/create" element={<CreateResource />} />
           <Route path="/network" element={<Network />} />

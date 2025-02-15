@@ -1,227 +1,250 @@
+
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
-import { ArrowLeft, Pencil, Building2, GraduationCap, BookOpen } from "lucide-react";
+import { Pencil, Plus, Briefcase, GraduationCap, MapPin, Globe, UserPlus } from "lucide-react";
+import { format } from "date-fns";
+
+interface Profile {
+  id: string;
+  username?: string;
+  full_name?: string;
+  avatar_url?: string;
+  headline?: string;
+  bio?: string;
+  location?: string;
+  website?: string;
+}
+
+interface Experience {
+  id: string;
+  title: string;
+  company: string;
+  location?: string;
+  start_date: string;
+  end_date?: string;
+  description?: string;
+}
+
+interface Education {
+  id: string;
+  school: string;
+  degree: string;
+  field: string;
+  start_date: string;
+  end_date?: string;
+  description?: string;
+}
 
 const Profile = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [profile, setProfile] = useState<any>(null);
-  const [experiences, setExperiences] = useState<any[]>([]);
-  const [education, setEducation] = useState<any[]>([]);
-  const [skills, setSkills] = useState<any[]>([]);
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [experiences, setExperiences] = useState<Experience[]>([]);
+  const [education, setEducation] = useState<Education[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     loadProfile();
-    loadSkills();
   }, []);
 
   const loadProfile = async () => {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        navigate('/');
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        navigate('/auth');
         return;
       }
 
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select('*')
-        .eq('id', session.user.id)
+        .eq('id', user.id)
         .single();
 
       if (profileError) throw profileError;
-      setProfile(profileData);
 
-      const { data: expData, error: expError } = await supabase
+      const { data: experienceData, error: experienceError } = await supabase
         .from('experiences')
         .select('*')
-        .eq('profile_id', session.user.id)
+        .eq('profile_id', user.id)
         .order('start_date', { ascending: false });
 
-      if (expError) throw expError;
-      setExperiences(expData);
+      if (experienceError) throw experienceError;
 
-      const { data: eduData, error: eduError } = await supabase
+      const { data: educationData, error: educationError } = await supabase
         .from('education')
         .select('*')
-        .eq('profile_id', session.user.id)
+        .eq('profile_id', user.id)
         .order('start_date', { ascending: false });
 
-      if (eduError) throw eduError;
-      setEducation(eduData);
+      if (educationError) throw educationError;
 
+      setProfile(profileData);
+      setExperiences(experienceData || []);
+      setEducation(educationData || []);
     } catch (error: any) {
       toast({
         variant: "destructive",
         title: "Error loading profile",
         description: error.message,
       });
+    } finally {
+      setLoading(false);
     }
   };
 
-  const loadSkills = async () => {
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
-
-      const { data, error } = await supabase
-        .from('profile_skills')
-        .select(`
-          *,
-          skills:skill_id (
-            id,
-            name
-          )
-        `)
-        .eq('profile_id', session.user.id);
-
-      if (error) throw error;
-      setSkills(data || []);
-    } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Error loading skills",
-        description: error.message,
-      });
-    }
-  };
-
-  if (!profile) {
-    return <div>Loading...</div>;
+  if (loading) {
+    return <div className="min-h-screen bg-gray-50 p-4 flex items-center justify-center">
+      Loading profile...
+    </div>;
   }
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-4xl mx-auto px-4 py-8">
-        <Button
-          variant="ghost"
-          onClick={() => navigate('/')}
-          className="mb-6"
-        >
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Home
-        </Button>
-
-        <Card className="mb-6 relative">
-          {profile.cover_url && (
-            <div className="h-48 w-full bg-cover bg-center rounded-t-lg" style={{ backgroundImage: `url(${profile.cover_url})` }} />
-          )}
-          <div className="p-6">
-            <div className="flex items-start justify-between">
-              <div className="flex items-center">
-                {profile.avatar_url ? (
-                  <img src={profile.avatar_url} alt={profile.full_name} className="h-24 w-24 rounded-full" />
+      <div className="max-w-3xl mx-auto px-4 py-8">
+        <Card className="mb-6 overflow-hidden">
+          <div className="relative h-32 bg-gradient-to-r from-blue-400 to-blue-600">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute top-4 right-4 bg-white/90 hover:bg-white"
+              onClick={() => navigate('/profile/edit')}
+            >
+              <Pencil className="h-4 w-4" />
+            </Button>
+          </div>
+          <div className="p-6 -mt-16">
+            <div className="flex flex-col sm:flex-row items-center sm:items-end gap-4">
+              <div className="relative">
+                {profile?.avatar_url ? (
+                  <img
+                    src={profile.avatar_url}
+                    alt={profile.full_name}
+                    className="w-32 h-32 rounded-full border-4 border-white"
+                  />
                 ) : (
-                  <div className="h-24 w-24 rounded-full bg-blue-100 flex items-center justify-center">
-                    <span className="text-2xl text-blue-600">{profile.full_name?.[0]}</span>
+                  <div className="w-32 h-32 rounded-full border-4 border-white bg-blue-100 flex items-center justify-center">
+                    <span className="text-4xl text-blue-600">
+                      {profile?.full_name?.[0]}
+                    </span>
                   </div>
                 )}
-                <div className="ml-4">
-                  <h1 className="text-2xl font-bold">{profile.full_name}</h1>
-                  <p className="text-gray-600">{profile.headline}</p>
-                  {profile.location && <p className="text-gray-500">{profile.location}</p>}
-                  {profile.website && (
-                    <a href={profile.website} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">
-                      {profile.website}
-                    </a>
+              </div>
+              <div className="text-center sm:text-left flex-1">
+                <h1 className="text-2xl font-bold">{profile?.full_name}</h1>
+                {profile?.headline && (
+                  <p className="text-gray-600 mt-1">{profile.headline}</p>
+                )}
+                <div className="flex flex-wrap gap-4 mt-4 justify-center sm:justify-start">
+                  {profile?.location && (
+                    <div className="flex items-center text-gray-600">
+                      <MapPin className="h-4 w-4 mr-1" />
+                      <span>{profile.location}</span>
+                    </div>
+                  )}
+                  {profile?.website && (
+                    <div className="flex items-center text-gray-600">
+                      <Globe className="h-4 w-4 mr-1" />
+                      <a href={profile.website} target="_blank" rel="noopener noreferrer" className="hover:text-blue-600">
+                        Website
+                      </a>
+                    </div>
                   )}
                 </div>
               </div>
-              <Button onClick={() => navigate('/profile/edit')}>
-                <Pencil className="h-4 w-4 mr-2" />
-                Edit Profile
-              </Button>
             </div>
-            {profile.bio && (
-              <div className="mt-4">
-                <h2 className="text-lg font-semibold mb-2">About</h2>
-                <p className="text-gray-700">{profile.bio}</p>
-              </div>
+            {profile?.bio && (
+              <p className="mt-6 text-gray-600 whitespace-pre-wrap">{profile.bio}</p>
             )}
           </div>
         </Card>
 
-        <Card className="mb-6">
-          <div className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold flex items-center">
-                <Building2 className="h-5 w-5 mr-2" />
-                Experience
-              </h2>
-              <Button variant="outline" onClick={() => navigate('/profile/add-experience')}>
+        <div className="space-y-6">
+          <section>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold">Experience</h2>
+              <Button onClick={() => navigate('/profile/add-experience')} size="sm">
+                <Plus className="h-4 w-4 mr-2" />
                 Add Experience
               </Button>
             </div>
             <div className="space-y-4">
-              {experiences.map((exp) => (
-                <div key={exp.id} className="border-b last:border-0 pb-4 last:pb-0">
-                  <h3 className="font-semibold">{exp.title}</h3>
-                  <p className="text-gray-600">{exp.company}</p>
-                  <p className="text-gray-500 text-sm">
-                    {new Date(exp.start_date).toLocaleDateString()} - 
-                    {exp.end_date ? new Date(exp.end_date).toLocaleDateString() : 'Present'}
-                  </p>
-                  {exp.description && <p className="text-gray-700 mt-2">{exp.description}</p>}
-                </div>
+              {experiences.map((experience) => (
+                <Card key={experience.id} className="p-4">
+                  <div className="flex gap-4">
+                    <div className="flex-shrink-0">
+                      <Briefcase className="h-10 w-10 text-blue-600" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold">{experience.title}</h3>
+                      <p className="text-gray-600">{experience.company}</p>
+                      {experience.location && (
+                        <p className="text-gray-500 text-sm">{experience.location}</p>
+                      )}
+                      <p className="text-gray-500 text-sm">
+                        {format(new Date(experience.start_date), 'MMM yyyy')} -{' '}
+                        {experience.end_date
+                          ? format(new Date(experience.end_date), 'MMM yyyy')
+                          : 'Present'}
+                      </p>
+                      {experience.description && (
+                        <p className="mt-2 text-gray-600">{experience.description}</p>
+                      )}
+                    </div>
+                  </div>
+                </Card>
               ))}
+              {experiences.length === 0 && (
+                <Card className="p-4">
+                  <p className="text-gray-500 text-center">No experience added yet</p>
+                </Card>
+              )}
             </div>
-          </div>
-        </Card>
+          </section>
 
-        <Card className="mb-6">
-          <div className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold flex items-center">
-                <GraduationCap className="h-5 w-5 mr-2" />
-                Education
-              </h2>
-              <Button variant="outline" onClick={() => navigate('/profile/add-education')}>
+          <section>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold">Education</h2>
+              <Button onClick={() => navigate('/profile/add-education')} size="sm">
+                <Plus className="h-4 w-4 mr-2" />
                 Add Education
               </Button>
             </div>
             <div className="space-y-4">
               {education.map((edu) => (
-                <div key={edu.id} className="border-b last:border-0 pb-4 last:pb-0">
-                  <h3 className="font-semibold">{edu.school}</h3>
-                  <p className="text-gray-600">{edu.degree} - {edu.field}</p>
-                  <p className="text-gray-500 text-sm">
-                    {new Date(edu.start_date).toLocaleDateString()} - 
-                    {edu.end_date ? new Date(edu.end_date).toLocaleDateString() : 'Present'}
-                  </p>
-                  {edu.description && <p className="text-gray-700 mt-2">{edu.description}</p>}
-                </div>
+                <Card key={edu.id} className="p-4">
+                  <div className="flex gap-4">
+                    <div className="flex-shrink-0">
+                      <GraduationCap className="h-10 w-10 text-blue-600" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold">{edu.degree}</h3>
+                      <p className="text-gray-600">{edu.school}</p>
+                      <p className="text-gray-500 text-sm">
+                        {format(new Date(edu.start_date), 'MMM yyyy')} -{' '}
+                        {edu.end_date
+                          ? format(new Date(edu.end_date), 'MMM yyyy')
+                          : 'Present'}
+                      </p>
+                      {edu.description && (
+                        <p className="mt-2 text-gray-600">{edu.description}</p>
+                      )}
+                    </div>
+                  </div>
+                </Card>
               ))}
+              {education.length === 0 && (
+                <Card className="p-4">
+                  <p className="text-gray-500 text-center">No education added yet</p>
+                </Card>
+              )}
             </div>
-          </div>
-        </Card>
-
-        <Card className="mb-6">
-          <div className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold flex items-center">
-                <BookOpen className="h-5 w-5 mr-2" />
-                Skills
-              </h2>
-              <Button variant="outline" onClick={() => navigate('/profile/add-skills')}>
-                Add Skills
-              </Button>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {skills.map((skill) => (
-                <div
-                  key={skill.skill_id}
-                  className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full"
-                >
-                  {skill.skills.name}
-                </div>
-              ))}
-            </div>
-          </div>
-        </Card>
+          </section>
+        </div>
       </div>
     </div>
   );

@@ -1,11 +1,22 @@
+
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
-import { ArrowLeft, Calendar, MapPin, Users, Plus, ExternalLink, Search } from "lucide-react";
+import { ArrowLeft, Calendar, MapPin, Users, Plus, ExternalLink, Search, Pencil, Trash, AlertTriangle } from "lucide-react";
 import { format } from "date-fns";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const Events = () => {
   const navigate = useNavigate();
@@ -14,10 +25,18 @@ const Events = () => {
   const [allEvents, setAllEvents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [currentUser, setCurrentUser] = useState<string | null>(null);
+  const [deleteEventId, setDeleteEventId] = useState<string | null>(null);
 
   useEffect(() => {
+    checkUser();
     loadEvents();
   }, []);
+
+  const checkUser = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    setCurrentUser(user?.id || null);
+  };
 
   const loadEvents = async () => {
     try {
@@ -49,6 +68,36 @@ const Events = () => {
       event.location?.toLowerCase().includes(query.toLowerCase())
     );
     setEvents(filteredEvents);
+  };
+
+  const handleDelete = async (eventId: string) => {
+    try {
+      const { error } = await supabase
+        .from('tech_events')
+        .delete()
+        .eq('id', eventId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Event deleted",
+        description: "The event has been successfully deleted.",
+      });
+
+      loadEvents();
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Error deleting event",
+        description: error.message,
+      });
+    } finally {
+      setDeleteEventId(null);
+    }
+  };
+
+  const handleEdit = (eventId: string) => {
+    navigate(`/events/edit/${eventId}`);
   };
 
   return (
@@ -100,7 +149,27 @@ const Events = () => {
                 className="overflow-hidden hover:shadow-lg transition-shadow"
               >
                 <div className="p-4 sm:p-6">
-                  <h2 className="text-xl font-semibold mb-2">{event.title}</h2>
+                  <div className="flex justify-between items-start">
+                    <h2 className="text-xl font-semibold mb-2">{event.title}</h2>
+                    {currentUser === event.organizer_id && (
+                      <div className="flex gap-2">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleEdit(event.id)}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => setDeleteEventId(event.id)}
+                        >
+                          <Trash className="h-4 w-4 text-red-500" />
+                        </Button>
+                      </div>
+                    )}
+                  </div>
                   <div className="space-y-2 text-gray-600">
                     <div className="flex items-center">
                       <Calendar className="h-4 w-4 mr-2" />
@@ -143,6 +212,23 @@ const Events = () => {
           </div>
         )}
       </div>
+
+      <AlertDialog open={!!deleteEventId} onOpenChange={() => setDeleteEventId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the event.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={() => deleteEventId && handleDelete(deleteEventId)}>
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
