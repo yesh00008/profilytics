@@ -1,10 +1,9 @@
-
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Plus, Trash, Edit, ExternalLink, Users, Search, Lock, Globe } from "lucide-react";
+import { Plus, Trash, Edit, ExternalLink, Users, Search, Lock, Globe, MessageSquare } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { useQuery } from "@tanstack/react-query";
 
@@ -14,6 +13,7 @@ interface CommunityFormData {
   link: string;
   is_private: boolean;
   college_name: string;
+  community_type: 'public' | 'private' | 'external';
 }
 
 interface Community {
@@ -24,6 +24,7 @@ interface Community {
   creator_id: string;
   is_private: boolean;
   college_name: string | null;
+  community_type: 'public' | 'private' | 'external';
   profiles: {
     full_name: string;
   };
@@ -46,6 +47,7 @@ const Communities = () => {
     link: "",
     is_private: false,
     college_name: "",
+    community_type: 'public'
   });
   const [searchQuery, setSearchQuery] = useState("");
   const [allCommunities, setAllCommunities] = useState<Community[]>([]);
@@ -126,6 +128,7 @@ const Communities = () => {
       const communityData = {
         ...formData,
         creator_id: user.id,
+        is_private: formData.community_type === 'private',
       };
 
       if (editingCommunity) {
@@ -157,6 +160,7 @@ const Communities = () => {
         link: "",
         is_private: false,
         college_name: "",
+        community_type: 'public'
       });
       loadCommunities();
     } catch (error: any) {
@@ -241,11 +245,12 @@ const Communities = () => {
       link: community.link || "",
       is_private: community.is_private,
       college_name: community.college_name || "",
+      community_type: community.community_type,
     });
     setShowForm(true);
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target as HTMLInputElement;
     setFormData({ 
       ...formData, 
@@ -287,6 +292,7 @@ const Communities = () => {
                   link: "",
                   is_private: false,
                   college_name: "",
+                  community_type: 'public'
                 });
               }
             }}
@@ -320,6 +326,23 @@ const Communities = () => {
             <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Community Type *
+                </label>
+                <select
+                  name="community_type"
+                  value={formData.community_type}
+                  onChange={handleChange}
+                  className="w-full p-2 border rounded-md"
+                  required
+                >
+                  <option value="public">Public Community</option>
+                  <option value="private">Private Community (College-specific)</option>
+                  <option value="external">External Community</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
                   Community Name *
                 </label>
                 <input
@@ -348,42 +371,32 @@ const Communities = () => {
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Community Link
-                </label>
-                <input
-                  type="url"
-                  name="link"
-                  value={formData.link}
-                  onChange={handleChange}
-                  className="w-full p-2 border rounded-md"
-                  placeholder="https://..."
-                />
-              </div>
-
-              <div className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  id="is_private"
-                  name="is_private"
-                  checked={formData.is_private}
-                  onChange={handleChange}
-                  className="rounded border-gray-300"
-                />
-                <label htmlFor="is_private" className="text-sm text-gray-700">
-                  Make this a private community
-                </label>
-              </div>
-
-              {formData.is_private && (
+              {formData.community_type === 'external' && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    College Name (for college-specific communities)
+                    External Link *
+                  </label>
+                  <input
+                    type="url"
+                    name="link"
+                    required
+                    value={formData.link}
+                    onChange={handleChange}
+                    className="w-full p-2 border rounded-md"
+                    placeholder="https://..."
+                  />
+                </div>
+              )}
+
+              {formData.community_type === 'private' && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    College Name *
                   </label>
                   <input
                     type="text"
                     name="college_name"
+                    required
                     value={formData.college_name}
                     onChange={handleChange}
                     className="w-full p-2 border rounded-md"
@@ -405,10 +418,12 @@ const Communities = () => {
               <div className="flex justify-between items-start">
                 <div className="flex items-center gap-2">
                   <h2 className="text-lg sm:text-xl font-semibold">{community.name}</h2>
-                  {community.is_private ? (
+                  {community.community_type === 'private' ? (
                     <Lock className="h-4 w-4 text-gray-500" />
-                  ) : (
+                  ) : community.community_type === 'public' ? (
                     <Globe className="h-4 w-4 text-gray-500" />
+                  ) : (
+                    <ExternalLink className="h-4 w-4 text-gray-500" />
                   )}
                 </div>
                 {userId === community.creator_id && (
@@ -442,26 +457,42 @@ const Communities = () => {
                   <span>{community._count?.members || 0} members</span>
                 </div>
                 <div className="flex gap-2 w-full sm:w-auto">
-                  {userId !== community.creator_id && canJoinCommunity(community) && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleJoinRequest(community.id)}
-                      className="w-full sm:w-auto"
-                    >
-                      Request to Join
-                    </Button>
-                  )}
-                  {community.link && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => window.open(community.link, '_blank')}
-                      className="w-full sm:w-auto"
-                    >
-                      <ExternalLink className="h-4 w-4 mr-2" />
-                      Visit
-                    </Button>
+                  {userId !== community.creator_id && (
+                    <>
+                      {community.community_type === 'external' ? (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => window.open(community.link, '_blank')}
+                          className="w-full sm:w-auto"
+                        >
+                          <ExternalLink className="h-4 w-4 mr-2" />
+                          Visit Community
+                        </Button>
+                      ) : (
+                        <>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleJoinRequest(community.id)}
+                            className="w-full sm:w-auto"
+                          >
+                            Request to Join
+                          </Button>
+                          {community.community_type !== 'external' && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => navigate(`/messages/community/${community.id}`)}
+                              className="w-full sm:w-auto"
+                            >
+                              <MessageSquare className="h-4 w-4 mr-2" />
+                              Messages
+                            </Button>
+                          )}
+                        </>
+                      )}
+                    </>
                   )}
                 </div>
               </div>

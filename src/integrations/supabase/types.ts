@@ -54,6 +54,7 @@ export type Database = {
       communities: {
         Row: {
           college_name: string | null
+          community_type: Database["public"]["Enums"]["community_type"] | null
           created_at: string
           creator_id: string | null
           description: string | null
@@ -65,6 +66,7 @@ export type Database = {
         }
         Insert: {
           college_name?: string | null
+          community_type?: Database["public"]["Enums"]["community_type"] | null
           created_at?: string
           creator_id?: string | null
           description?: string | null
@@ -76,6 +78,7 @@ export type Database = {
         }
         Update: {
           college_name?: string | null
+          community_type?: Database["public"]["Enums"]["community_type"] | null
           created_at?: string
           creator_id?: string | null
           description?: string | null
@@ -97,6 +100,7 @@ export type Database = {
       }
       community_members: {
         Row: {
+          can_message: boolean | null
           community_id: string
           joined_at: string
           profile_id: string
@@ -104,6 +108,7 @@ export type Database = {
           status: Database["public"]["Enums"]["membership_status"] | null
         }
         Insert: {
+          can_message?: boolean | null
           community_id: string
           joined_at?: string
           profile_id: string
@@ -111,6 +116,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["membership_status"] | null
         }
         Update: {
+          can_message?: boolean | null
           community_id?: string
           joined_at?: string
           profile_id?: string
@@ -844,6 +850,7 @@ export type Database = {
     }
     Enums: {
       application_status: "applied" | "reviewing" | "accepted" | "rejected"
+      community_type: "public" | "private" | "external"
       connection_status: "pending" | "accepted" | "rejected"
       membership_status: "pending" | "approved" | "rejected"
       user_role: "admin" | "recruiter" | "user"

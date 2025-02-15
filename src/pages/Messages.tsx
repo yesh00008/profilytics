@@ -14,25 +14,29 @@ interface Message {
   content: string;
   sender_id: string;
   receiver_id: string;
+  community_id: string | null;
   created_at: string;
   read: boolean;
+  profiles: {
+    full_name: string;
+  };
 }
 
-interface Profile {
+interface Community {
   id: string;
-  full_name: string;
-  avatar_url: string;
+  name: string;
+  community_type: 'public' | 'private' | 'external';
 }
 
 const Messages = () => {
-  const { userId } = useParams();
+  const { communityId } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
   const [loading, setLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState<string | null>(null);
-  const [otherUser, setOtherUser] = useState<Profile | null>(null);
+  const [community, setCommunity] = useState<Community | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -40,12 +44,12 @@ const Messages = () => {
   }, []);
 
   useEffect(() => {
-    if (currentUser && userId) {
+    if (currentUser && communityId) {
       loadMessages();
-      loadOtherUserProfile();
+      loadCommunityDetails();
       subscribeToNewMessages();
     }
-  }, [currentUser, userId]);
+  }, [currentUser, communityId]);
 
   useEffect(() => {
     scrollToBottom();
@@ -60,34 +64,38 @@ const Messages = () => {
     setCurrentUser(user.id);
   };
 
-  const loadOtherUserProfile = async () => {
-    if (!userId) return;
+  const loadCommunityDetails = async () => {
+    if (!communityId) return;
     
     const { data, error } = await supabase
-      .from('profiles')
-      .select('id, full_name, avatar_url')
-      .eq('id', userId)
+      .from('communities')
+      .select('id, name, community_type')
+      .eq('id', communityId)
       .single();
 
     if (error) {
       toast({
         variant: "destructive",
-        title: "Error loading profile",
+        title: "Error loading community",
         description: error.message,
       });
       return;
     }
 
-    setOtherUser(data);
+    setCommunity(data);
   };
 
   const loadMessages = async () => {
     try {
       const { data, error } = await supabase
         .from('messages')
-        .select('*')
-        .or(`sender_id.eq.${currentUser},receiver_id.eq.${currentUser}`)
-        .or(`sender_id.eq.${userId},receiver_id.eq.${userId}`)
+        .select(`
+          *,
+          profiles!messages_sender_id_fkey (
+            full_name
+          )
+        `)
+        .eq('community_id', communityId)
         .order('created_at', { ascending: true });
 
       if (error) throw error;
@@ -111,7 +119,7 @@ const Messages = () => {
           event: 'INSERT', 
           schema: 'public', 
           table: 'messages',
-          filter: `sender_id=eq.${userId},receiver_id=eq.${currentUser}`
+          filter: `community_id=eq.${communityId}`
         }, 
         (payload) => {
           setMessages(prev => [...prev, payload.new as Message]);
@@ -130,7 +138,7 @@ const Messages = () => {
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newMessage.trim() || !currentUser || !userId) return;
+    if (!newMessage.trim() || !currentUser || !communityId) return;
 
     try {
       const { error } = await supabase
@@ -138,7 +146,8 @@ const Messages = () => {
         .insert({
           content: newMessage.trim(),
           sender_id: currentUser,
-          receiver_id: userId,
+          community_id: communityId,
+          type: 'community'
         });
 
       if (error) throw error;
@@ -154,7 +163,14 @@ const Messages = () => {
   };
 
   if (loading) {
-    return <div className="min-h-screen bg-gray-50 p-4">Loading messages...</div>;
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Navbar />
+        <div className="max-w-4xl mx-auto px-4 py-8">
+          Loading messages...
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -164,29 +180,14 @@ const Messages = () => {
         <div className="mb-6">
           <Button
             variant="ghost"
-            onClick={() => navigate(-1)}
+            onClick={() => navigate('/communities')}
             className="mb-4"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Back
+            Back to Communities
           </Button>
-          {otherUser && (
-            <div className="flex items-center gap-3">
-              {otherUser.avatar_url ? (
-                <img
-                  src={otherUser.avatar_url}
-                  alt={otherUser.full_name}
-                  className="h-10 w-10 rounded-full"
-                />
-              ) : (
-                <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
-                  <span className="text-blue-600 font-semibold">
-                    {otherUser.full_name?.[0]}
-                  </span>
-                </div>
-              )}
-              <h1 className="text-2xl font-bold">{otherUser.full_name}</h1>
-            </div>
+          {community && (
+            <h1 className="text-2xl font-bold">{community.name}</h1>
           )}
         </div>
 
@@ -208,7 +209,7 @@ const Messages = () => {
                 >
                   <p className="break-words">{message.content}</p>
                   <span className="text-xs opacity-70 mt-1 block">
-                    {new Date(message.created_at).toLocaleTimeString()}
+                    {message.profiles.full_name} • {new Date(message.created_at).toLocaleTimeString()}
                   </span>
                 </div>
               </div>
