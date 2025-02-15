@@ -1,31 +1,54 @@
+
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Plus, Trash, Edit, ExternalLink, Users, Search } from "lucide-react";
+import { Plus, Trash, Edit, ExternalLink, Users, Search, Lock, Globe } from "lucide-react";
 import Navbar from "@/components/Navbar";
+import { useQuery } from "@tanstack/react-query";
 
 interface CommunityFormData {
   name: string;
   description: string;
   link: string;
+  is_private: boolean;
+  college_name: string;
+}
+
+interface Community {
+  id: string;
+  name: string;
+  description: string;
+  link: string | null;
+  creator_id: string;
+  is_private: boolean;
+  college_name: string | null;
+  profiles: {
+    full_name: string;
+  };
+  _count?: {
+    members: number;
+  };
 }
 
 const Communities = () => {
   const { toast } = useToast();
-  const [communities, setCommunities] = useState<any[]>([]);
+  const [communities, setCommunities] = useState<Community[]>([]);
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
+  const [userProfile, setUserProfile] = useState<any>(null);
   const [showForm, setShowForm] = useState(false);
-  const [editingCommunity, setEditingCommunity] = useState<any>(null);
+  const [editingCommunity, setEditingCommunity] = useState<Community | null>(null);
   const [formData, setFormData] = useState<CommunityFormData>({
     name: "",
     description: "",
     link: "",
+    is_private: false,
+    college_name: "",
   });
   const [searchQuery, setSearchQuery] = useState("");
-  const [allCommunities, setAllCommunities] = useState<any[]>([]);
+  const [allCommunities, setAllCommunities] = useState<Community[]>([]);
 
   useEffect(() => {
     loadCommunities();
@@ -35,6 +58,15 @@ const Communities = () => {
   const checkUser = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     setUserId(user?.id || null);
+    
+    if (user) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+      setUserProfile(profile);
+    }
   };
 
   const loadCommunities = async () => {
@@ -45,13 +77,24 @@ const Communities = () => {
           *,
           profiles!communities_creator_id_fkey (
             full_name
+          ),
+          community_members (
+            count
           )
         `)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setCommunities(data || []);
-      setAllCommunities(data || []);
+
+      const communitiesWithMemberCount = data.map(community => ({
+        ...community,
+        _count: {
+          members: community.community_members?.length || 0
+        }
+      }));
+
+      setCommunities(communitiesWithMemberCount);
+      setAllCommunities(communitiesWithMemberCount);
     } catch (error: any) {
       toast({
         variant: "destructive",
@@ -112,6 +155,8 @@ const Communities = () => {
         name: "",
         description: "",
         link: "",
+        is_private: false,
+        college_name: "",
       });
       loadCommunities();
     } catch (error: any) {
@@ -148,19 +193,70 @@ const Communities = () => {
     }
   };
 
-  const handleEdit = (community: any) => {
+  const handleJoinRequest = async (communityId: string) => {
+    try {
+      const { data: existingRequest } = await supabase
+        .from('community_members')
+        .select('*')
+        .eq('community_id', communityId)
+        .eq('profile_id', userId)
+        .single();
+
+      if (existingRequest) {
+        toast({
+          title: "Info",
+          description: "You have already requested to join this community",
+        });
+        return;
+      }
+
+      const { error } = await supabase
+        .from('community_members')
+        .insert({
+          community_id: communityId,
+          profile_id: userId,
+          status: 'pending'
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Join request sent successfully",
+      });
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Error sending join request",
+        description: error.message,
+      });
+    }
+  };
+
+  const handleEdit = (community: Community) => {
     setEditingCommunity(community);
     setFormData({
       name: community.name,
       description: community.description,
       link: community.link || "",
+      is_private: community.is_private,
+      college_name: community.college_name || "",
     });
     setShowForm(true);
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+    const { name, value, type } = e.target as HTMLInputElement;
+    setFormData({ 
+      ...formData, 
+      [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value 
+    });
+  };
+
+  const canJoinCommunity = (community: Community) => {
+    if (!community.is_private) return true;
+    if (!community.college_name) return true;
+    return userProfile?.college === community.college_name;
   };
 
   if (loading && !showForm) {
@@ -189,6 +285,8 @@ const Communities = () => {
                   name: "",
                   description: "",
                   link: "",
+                  is_private: false,
+                  college_name: "",
                 });
               }
             }}
@@ -264,6 +362,36 @@ const Communities = () => {
                 />
               </div>
 
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id="is_private"
+                  name="is_private"
+                  checked={formData.is_private}
+                  onChange={handleChange}
+                  className="rounded border-gray-300"
+                />
+                <label htmlFor="is_private" className="text-sm text-gray-700">
+                  Make this a private community
+                </label>
+              </div>
+
+              {formData.is_private && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    College Name (for college-specific communities)
+                  </label>
+                  <input
+                    type="text"
+                    name="college_name"
+                    value={formData.college_name}
+                    onChange={handleChange}
+                    className="w-full p-2 border rounded-md"
+                    placeholder="Enter college name"
+                  />
+                </div>
+              )}
+
               <Button type="submit" disabled={loading} className="w-full">
                 {loading ? "Saving..." : (editingCommunity ? "Update Community" : "Create Community")}
               </Button>
@@ -275,7 +403,14 @@ const Communities = () => {
           {communities.map((community) => (
             <Card key={community.id} className="p-4 sm:p-6">
               <div className="flex justify-between items-start">
-                <h2 className="text-lg sm:text-xl font-semibold mb-2">{community.name}</h2>
+                <div className="flex items-center gap-2">
+                  <h2 className="text-lg sm:text-xl font-semibold">{community.name}</h2>
+                  {community.is_private ? (
+                    <Lock className="h-4 w-4 text-gray-500" />
+                  ) : (
+                    <Globe className="h-4 w-4 text-gray-500" />
+                  )}
+                </div>
                 {userId === community.creator_id && (
                   <div className="flex gap-2">
                     <Button
@@ -296,22 +431,39 @@ const Communities = () => {
                 )}
               </div>
               <p className="text-gray-600 mb-4 text-sm sm:text-base">{community.description}</p>
+              {community.college_name && (
+                <p className="text-sm text-blue-600 mb-2">College: {community.college_name}</p>
+              )}
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
                 <div className="flex items-center text-sm text-gray-500">
                   <Users className="h-4 w-4 mr-1" />
                   <span>Created by {community.profiles?.full_name}</span>
+                  <span className="mx-2">•</span>
+                  <span>{community._count?.members || 0} members</span>
                 </div>
-                {community.link && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => window.open(community.link, '_blank')}
-                    className="w-full sm:w-auto"
-                  >
-                    <ExternalLink className="h-4 w-4 mr-2" />
-                    Visit
-                  </Button>
-                )}
+                <div className="flex gap-2 w-full sm:w-auto">
+                  {userId !== community.creator_id && canJoinCommunity(community) && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleJoinRequest(community.id)}
+                      className="w-full sm:w-auto"
+                    >
+                      Request to Join
+                    </Button>
+                  )}
+                  {community.link && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => window.open(community.link, '_blank')}
+                      className="w-full sm:w-auto"
+                    >
+                      <ExternalLink className="h-4 w-4 mr-2" />
+                      Visit
+                    </Button>
+                  )}
+                </div>
               </div>
             </Card>
           ))}

@@ -53,28 +53,34 @@ export type Database = {
       }
       communities: {
         Row: {
+          college_name: string | null
           created_at: string
           creator_id: string | null
           description: string | null
           id: string
+          is_private: boolean | null
           link: string | null
           name: string
           updated_at: string
         }
         Insert: {
+          college_name?: string | null
           created_at?: string
           creator_id?: string | null
           description?: string | null
           id?: string
+          is_private?: boolean | null
           link?: string | null
           name: string
           updated_at?: string
         }
         Update: {
+          college_name?: string | null
           created_at?: string
           creator_id?: string | null
           description?: string | null
           id?: string
+          is_private?: boolean | null
           link?: string | null
           name?: string
           updated_at?: string
@@ -95,18 +101,21 @@ export type Database = {
           joined_at: string
           profile_id: string
           role: string | null
+          status: Database["public"]["Enums"]["membership_status"] | null
         }
         Insert: {
           community_id: string
           joined_at?: string
           profile_id: string
           role?: string | null
+          status?: Database["public"]["Enums"]["membership_status"] | null
         }
         Update: {
           community_id?: string
           joined_at?: string
           profile_id?: string
           role?: string | null
+          status?: Database["public"]["Enums"]["membership_status"] | null
         }
         Relationships: [
           {
@@ -471,30 +480,43 @@ export type Database = {
       }
       messages: {
         Row: {
+          community_id: string | null
           content: string
           created_at: string
           id: string
           read: boolean | null
           receiver_id: string | null
           sender_id: string | null
+          type: string | null
         }
         Insert: {
+          community_id?: string | null
           content: string
           created_at?: string
           id?: string
           read?: boolean | null
           receiver_id?: string | null
           sender_id?: string | null
+          type?: string | null
         }
         Update: {
+          community_id?: string | null
           content?: string
           created_at?: string
           id?: string
           read?: boolean | null
           receiver_id?: string | null
           sender_id?: string | null
+          type?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "messages_community_id_fkey"
+            columns: ["community_id"]
+            isOneToOne: false
+            referencedRelation: "communities"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "messages_receiver_id_fkey"
             columns: ["receiver_id"]
@@ -823,6 +845,7 @@ export type Database = {
     Enums: {
       application_status: "applied" | "reviewing" | "accepted" | "rejected"
       connection_status: "pending" | "accepted" | "rejected"
+      membership_status: "pending" | "approved" | "rejected"
       user_role: "admin" | "recruiter" | "user"
     }
     CompositeTypes: {
