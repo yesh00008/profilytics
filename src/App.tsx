@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -21,7 +22,6 @@ import CreateResource from "./pages/CreateResource";
 import Network from "./pages/Network";
 import Communities from "./pages/Communities";
 import CreateCommunity from "./pages/CreateCommunity";
-import AddSkills from "./pages/AddSkills";
 
 const queryClient = new QueryClient();
 

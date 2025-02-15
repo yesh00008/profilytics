@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -13,7 +14,7 @@ interface Profile {
   headline: string;
   avatar_url: string;
   location: string;
-  connection_status?: 'pending' | 'accepted' | null;
+  connection_status?: 'pending' | 'accepted' | 'rejected' | null;
 }
 
 const Network = () => {
