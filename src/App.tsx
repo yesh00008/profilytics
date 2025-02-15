@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -23,6 +22,7 @@ import Network from "./pages/Network";
 import Messages from "./pages/Messages";
 import Communities from "./pages/Communities";
 import CreateCommunity from "./pages/CreateCommunity";
+import CommunityMembers from "./pages/CommunityMembers";
 
 const queryClient = new QueryClient();
 
@@ -51,6 +51,7 @@ const App = () => (
           <Route path="/messages/:userId" element={<Messages />} />
           <Route path="/communities" element={<Communities />} />
           <Route path="/communities/create" element={<CreateCommunity />} />
+          <Route path="/communities/:communityId/members" element={<CommunityMembers />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

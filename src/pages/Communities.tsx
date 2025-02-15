@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom"; // Add this import
 import { Button } from "@/components/ui/button";
@@ -35,6 +34,11 @@ interface Community {
   };
 }
 
+interface CommunityMember {
+  status: string;
+  can_message: boolean;
+}
+
 const Communities = () => {
   const navigate = useNavigate(); // Initialize useNavigate
   const { toast } = useToast();
@@ -54,11 +58,18 @@ const Communities = () => {
   });
   const [searchQuery, setSearchQuery] = useState("");
   const [allCommunities, setAllCommunities] = useState<Community[]>([]);
+  const [membershipStatus, setMembershipStatus] = useState<{[key: string]: CommunityMember}>({});
 
   useEffect(() => {
     loadCommunities();
     checkUser();
   }, []);
+
+  useEffect(() => {
+    if (userId) {
+      loadMembershipStatus();
+    }
+  }, [userId, communities]);
 
   const checkUser = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -108,6 +119,31 @@ const Communities = () => {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadMembershipStatus = async () => {
+    if (!userId) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('community_members')
+        .select('community_id, status, can_message')
+        .eq('profile_id', userId);
+
+      if (error) throw error;
+
+      const statusMap = data.reduce((acc: {[key: string]: CommunityMember}, curr) => {
+        acc[curr.community_id] = {
+          status: curr.status,
+          can_message: curr.can_message
+        };
+        return acc;
+      }, {});
+
+      setMembershipStatus(statusMap);
+    } catch (error: any) {
+      console.error('Error loading membership status:', error);
     }
   };
 
@@ -460,7 +496,28 @@ const Communities = () => {
                   <span>{community._count?.members || 0} members</span>
                 </div>
                 <div className="flex gap-2 w-full sm:w-auto">
-                  {userId !== community.creator_id && (
+                  {userId === community.creator_id ? (
+                    <>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => navigate(`/communities/${community.id}/members`)}
+                        className="w-full sm:w-auto"
+                      >
+                        <Users className="h-4 w-4 mr-2" />
+                        Members
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => navigate(`/messages/community/${community.id}`)}
+                        className="w-full sm:w-auto"
+                      >
+                        <MessageSquare className="h-4 w-4 mr-2" />
+                        Messages
+                      </Button>
+                    </>
+                  ) : (
                     <>
                       {community.community_type === 'external' ? (
                         <Button
@@ -474,23 +531,50 @@ const Communities = () => {
                         </Button>
                       ) : (
                         <>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleJoinRequest(community.id)}
-                            className="w-full sm:w-auto"
-                          >
-                            Request to Join
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => navigate(`/messages/community/${community.id}`)}
-                            className="w-full sm:w-auto"
-                          >
-                            <MessageSquare className="h-4 w-4 mr-2" />
-                            Messages
-                          </Button>
+                          {!membershipStatus[community.id] ? (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleJoinRequest(community.id)}
+                              className="w-full sm:w-auto"
+                            >
+                              Request to Join
+                            </Button>
+                          ) : membershipStatus[community.id].status === 'pending' ? (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              disabled
+                              className="w-full sm:w-auto"
+                            >
+                              Pending Approval
+                            </Button>
+                          ) : (
+                            membershipStatus[community.id].status === 'approved' && (
+                              <>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => navigate(`/communities/${community.id}/members`)}
+                                  className="w-full sm:w-auto"
+                                >
+                                  <Users className="h-4 w-4 mr-2" />
+                                  Members
+                                </Button>
+                                {membershipStatus[community.id].can_message && (
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => navigate(`/messages/community/${community.id}`)}
+                                    className="w-full sm:w-auto"
+                                  >
+                                    <MessageSquare className="h-4 w-4 mr-2" />
+                                    Messages
+                                  </Button>
+                                )}
+                              </>
+                            )
+                          )}
                         </>
                       )}
                     </>
