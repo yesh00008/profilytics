@@ -1,4 +1,6 @@
+
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom"; // Add this import
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
@@ -34,6 +36,7 @@ interface Community {
 }
 
 const Communities = () => {
+  const navigate = useNavigate(); // Initialize useNavigate
   const { toast } = useToast();
   const [communities, setCommunities] = useState<Community[]>([]);
   const [loading, setLoading] = useState(true);
@@ -479,17 +482,15 @@ const Communities = () => {
                           >
                             Request to Join
                           </Button>
-                          {community.community_type !== 'external' && (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => navigate(`/messages/community/${community.id}`)}
-                              className="w-full sm:w-auto"
-                            >
-                              <MessageSquare className="h-4 w-4 mr-2" />
-                              Messages
-                            </Button>
-                          )}
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => navigate(`/messages/community/${community.id}`)}
+                            className="w-full sm:w-auto"
+                          >
+                            <MessageSquare className="h-4 w-4 mr-2" />
+                            Messages
+                          </Button>
                         </>
                       )}
                     </>
