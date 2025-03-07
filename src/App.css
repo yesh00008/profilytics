@@ -1,3 +1,4 @@
+
 #root {
   max-width: 1280px;
   margin: 0 auto;
@@ -12,10 +13,10 @@
   transition: filter 300ms;
 }
 .logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
+  filter: drop-shadow(0 0 2em rgba(34, 197, 94, 0.6));
 }
 .logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+  filter: drop-shadow(0 0 2em rgba(34, 197, 94, 0.6));
 }
 
 @keyframes logo-spin {
@@ -39,4 +40,41 @@
 
 .read-the-docs {
   color: #888;
+}
+
+/* LinkedIn style tag pills */
+.tag-pill {
+  display: inline-flex;
+  align-items: center;
+  background-color: #e8f0fe;
+  color: #0077b5;
+  padding: 0.35rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-right: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.tag-pill-green {
+  background-color: rgba(34, 197, 94, 0.1);
+  color: rgb(22, 163, 74);
+}
+
+/* LinkedIn style selection checkmark */
+.selected-item {
+  border-left: 3px solid rgb(22, 163, 74);
+  background-color: rgba(34, 197, 94, 0.1);
+}
+
+/* LinkedIn style cards */
+.linkedin-card {
+  border-radius: 0.5rem;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.05);
+  transition: box-shadow 0.3s ease;
+  overflow: hidden;
+}
+
+.linkedin-card:hover {
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.08), 0 8px 16px rgba(0, 0, 0, 0.1);
 }

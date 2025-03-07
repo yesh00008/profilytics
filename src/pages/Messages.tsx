@@ -139,7 +139,9 @@ const Messages = () => {
       <div className="min-h-screen bg-gray-50">
         <Navbar />
         <div className="max-w-4xl mx-auto px-4 py-8">
-          Loading messages...
+          <div className="flex justify-center items-center h-64">
+            <div className="animate-pulse text-gray-500">Loading messages...</div>
+          </div>
         </div>
       </div>
     );
@@ -153,14 +155,17 @@ const Messages = () => {
           <Button
             variant="ghost"
             onClick={() => navigate('/network')}
-            className="mb-4"
+            className="mb-4 flex items-center hover:bg-green-50 hover:text-green-600"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Network
           </Button>
         </div>
 
-        <Card className="p-4 h-[600px] flex flex-col">
+        <Card className="p-4 h-[600px] flex flex-col shadow-md rounded-xl border-gray-200">
+          <div className="flex items-center justify-between p-3 border-b mb-3">
+            <h2 className="text-lg font-semibold text-gray-800">Messages</h2>
+          </div>
           <MessageList 
             messages={messages} 
             currentUserId={currentUser} 

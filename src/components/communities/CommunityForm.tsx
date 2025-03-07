@@ -116,11 +116,11 @@ const CommunityForm: React.FC<CommunityFormProps> = ({
   };
 
   return (
-    <Card className="p-4 sm:p-6 mb-8">
-      <h2 className="text-xl font-semibold mb-4">
+    <Card className="p-6 sm:p-8 mb-8 shadow-md rounded-xl border-gray-200">
+      <h2 className="text-xl font-semibold mb-6 text-gray-800">
         {editingCommunity ? "Edit Community" : "Create a New Community"}
       </h2>
-      <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-5">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Community Type *
@@ -129,7 +129,7 @@ const CommunityForm: React.FC<CommunityFormProps> = ({
             name="community_type"
             value={formData.community_type}
             onChange={handleChange}
-            className="w-full p-2 border rounded-md"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
             required
           >
             <option value="public">Public Community</option>
@@ -148,7 +148,7 @@ const CommunityForm: React.FC<CommunityFormProps> = ({
             required
             value={formData.name}
             onChange={handleChange}
-            className="w-full p-2 border rounded-md"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
             placeholder="Enter community name"
           />
         </div>
@@ -163,7 +163,7 @@ const CommunityForm: React.FC<CommunityFormProps> = ({
             value={formData.description}
             onChange={handleChange}
             rows={4}
-            className="w-full p-2 border rounded-md"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
             placeholder="Describe your community"
           />
         </div>
@@ -179,7 +179,7 @@ const CommunityForm: React.FC<CommunityFormProps> = ({
               required
               value={formData.link}
               onChange={handleChange}
-              className="w-full p-2 border rounded-md"
+              className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
               placeholder="https://..."
             />
           </div>
@@ -196,15 +196,29 @@ const CommunityForm: React.FC<CommunityFormProps> = ({
               required
               value={formData.college_name}
               onChange={handleChange}
-              className="w-full p-2 border rounded-md"
+              className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
               placeholder="Enter college name"
             />
           </div>
         )}
 
-        <Button type="submit" disabled={loading} className="w-full">
-          {loading ? "Saving..." : (editingCommunity ? "Update Community" : "Create Community")}
-        </Button>
+        <div className="flex gap-3 pt-2">
+          <Button 
+            type="button" 
+            variant="outline" 
+            onClick={onCancel}
+            className="flex-1 border-gray-300 hover:bg-gray-50"
+          >
+            Cancel
+          </Button>
+          <Button 
+            type="submit" 
+            disabled={loading} 
+            className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+          >
+            {loading ? "Saving..." : (editingCommunity ? "Update Community" : "Create Community")}
+          </Button>
+        </div>
       </form>
     </Card>
   );
