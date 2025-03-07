@@ -18,7 +18,7 @@ const MessageItem: React.FC<MessageItemProps> = ({
     <div
       className={`flex ${
         isCurrentUser ? "justify-end" : "justify-start"
-      }`}
+      } mb-4`}
     >
       <div
         className={`max-w-[70%] p-3 rounded-lg ${
