@@ -1,26 +1,14 @@
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { ArrowLeft, Send } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
-
-interface Message {
-  id: string;
-  content: string;
-  sender_id: string;
-  receiver_id: string;
-  community_id: string | null;
-  created_at: string;
-  read: boolean;
-  profiles: {
-    full_name: string;
-  };
-}
+import MessageList, { Message } from "@/components/messages/MessageList";
+import MessageInputForm from "@/components/messages/MessageInputForm";
 
 interface Community {
   id: string;
@@ -29,60 +17,33 @@ interface Community {
 }
 
 const Messages = () => {
-  const { communityId } = useParams();
+  const { userId } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [messages, setMessages] = useState<Message[]>([]);
-  const [newMessage, setNewMessage] = useState("");
   const [loading, setLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState<string | null>(null);
   const [community, setCommunity] = useState<Community | null>(null);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     checkUser();
   }, []);
 
   useEffect(() => {
-    if (currentUser && communityId) {
+    if (currentUser && userId) {
       loadMessages();
-      loadCommunityDetails();
-      subscribeToNewMessages();
+      const unsubscribe = subscribeToNewMessages();
+      return unsubscribe;
     }
-  }, [currentUser, communityId]);
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
+  }, [currentUser, userId]);
 
   const checkUser = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
-      navigate('/auth');
+      navigate('/');
       return;
     }
     setCurrentUser(user.id);
-  };
-
-  const loadCommunityDetails = async () => {
-    if (!communityId) return;
-    
-    const { data, error } = await supabase
-      .from('communities')
-      .select('id, name, community_type')
-      .eq('id', communityId)
-      .single();
-
-    if (error) {
-      toast({
-        variant: "destructive",
-        title: "Error loading community",
-        description: error.message,
-      });
-      return;
-    }
-
-    setCommunity(data);
   };
 
   const loadMessages = async () => {
@@ -95,12 +56,20 @@ const Messages = () => {
             full_name
           )
         `)
-        .eq('community_id', communityId)
+        .or(`sender_id.eq.${currentUser},receiver_id.eq.${currentUser}`)
+        .or(`sender_id.eq.${userId},receiver_id.eq.${userId}`)
+        .is('community_id', null)
         .order('created_at', { ascending: true });
 
       if (error) throw error;
 
-      setMessages(data || []);
+      // Ensure type property is specifically 'community'
+      const typedMessages = data?.map(msg => ({
+        ...msg,
+        type: 'community' as const
+      })) || [];
+      
+      setMessages(typedMessages);
       setLoading(false);
     } catch (error: any) {
       toast({
@@ -113,16 +82,25 @@ const Messages = () => {
 
   const subscribeToNewMessages = () => {
     const subscription = supabase
-      .channel('messages')
+      .channel('direct_messages')
       .on('postgres_changes', 
         { 
           event: 'INSERT', 
           schema: 'public', 
           table: 'messages',
-          filter: `community_id=eq.${communityId}`
+          filter: `community_id=is.null`
         }, 
         (payload) => {
-          setMessages(prev => [...prev, payload.new as Message]);
+          const msg = payload.new as any;
+          if ((msg.sender_id === currentUser && msg.receiver_id === userId) || 
+              (msg.sender_id === userId && msg.receiver_id === currentUser)) {
+            // Ensure the new message has the correct type
+            const newMessage = {
+              ...msg,
+              type: 'community' as const
+            };
+            setMessages(prev => [...prev, newMessage as Message]);
+          }
         }
       )
       .subscribe();
@@ -132,27 +110,21 @@ const Messages = () => {
     };
   };
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
-  const handleSendMessage = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newMessage.trim() || !currentUser || !communityId) return;
+  const handleSendMessage = async (content: string) => {
+    if (!currentUser || !userId) return;
 
     try {
       const { error } = await supabase
         .from('messages')
         .insert({
-          content: newMessage.trim(),
+          content: content,
           sender_id: currentUser,
-          community_id: communityId,
-          type: 'community'
+          receiver_id: userId,
+          community_id: null,
+          type: 'direct'
         });
 
       if (error) throw error;
-
-      setNewMessage("");
     } catch (error: any) {
       toast({
         variant: "destructive",
@@ -180,55 +152,20 @@ const Messages = () => {
         <div className="mb-6">
           <Button
             variant="ghost"
-            onClick={() => navigate('/communities')}
+            onClick={() => navigate('/network')}
             className="mb-4"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Communities
+            Back to Network
           </Button>
-          {community && (
-            <h1 className="text-2xl font-bold">{community.name}</h1>
-          )}
         </div>
 
         <Card className="p-4 h-[600px] flex flex-col">
-          <div className="flex-1 overflow-y-auto mb-4 space-y-4">
-            {messages.map((message) => (
-              <div
-                key={message.id}
-                className={`flex ${
-                  message.sender_id === currentUser ? "justify-end" : "justify-start"
-                }`}
-              >
-                <div
-                  className={`max-w-[70%] p-3 rounded-lg ${
-                    message.sender_id === currentUser
-                      ? "bg-blue-500 text-white"
-                      : "bg-gray-100"
-                  }`}
-                >
-                  <p className="break-words">{message.content}</p>
-                  <span className="text-xs opacity-70 mt-1 block">
-                    {message.profiles.full_name} • {new Date(message.created_at).toLocaleTimeString()}
-                  </span>
-                </div>
-              </div>
-            ))}
-            <div ref={messagesEndRef} />
-          </div>
-
-          <form onSubmit={handleSendMessage} className="flex gap-2">
-            <Input
-              value={newMessage}
-              onChange={(e) => setNewMessage(e.target.value)}
-              placeholder="Type your message..."
-              className="flex-1"
-            />
-            <Button type="submit" disabled={!newMessage.trim()}>
-              <Send className="h-4 w-4 mr-2" />
-              Send
-            </Button>
-          </form>
+          <MessageList 
+            messages={messages} 
+            currentUserId={currentUser} 
+          />
+          <MessageInputForm onSendMessage={handleSendMessage} />
         </Card>
       </div>
     </div>
