@@ -32,7 +32,6 @@ const Navbar = () => {
     { label: "Hackathons", path: "/hackathons" },
     { label: "Resources", path: "/resources" },
     { label: "Communities", path: "/communities" },
-    { label: "Messages", path: "/messages" },
     { label: "Network", path: "/network" }
   ];
 

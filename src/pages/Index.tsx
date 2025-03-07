@@ -6,8 +6,9 @@ import { ThemeSupa } from '@supabase/auth-ui-shared';
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
-import { Briefcase, Calendar, Users, BookOpen, Trophy, Network } from "lucide-react";
+import { Briefcase, Calendar, Users, BookOpen, Trophy, Network, MessageSquare } from "lucide-react";
 import Navbar from "@/components/Navbar";
+
 const Index = () => {
   const navigate = useNavigate();
   const [session, setSession] = useState<any>(null);
@@ -46,6 +47,7 @@ const Index = () => {
     });
     return () => subscription.unsubscribe();
   }, [toast]);
+
   if (!session) {
     return <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-gray-50 to-gray-100">
         <Card className="w-full max-w-md p-8 shadow-lg">
@@ -66,6 +68,7 @@ const Index = () => {
         </Card>
       </div>;
   }
+
   const dashboardItems = [{
     title: "Internships & Jobs",
     icon: <Briefcase className="h-6 w-6" />,
@@ -96,7 +99,13 @@ const Index = () => {
     icon: <Users className="h-6 w-6" />,
     description: "Join discussions and share insights",
     link: "/communities"
+  }, {
+    title: "Messages",
+    icon: <MessageSquare className="h-6 w-6" />,
+    description: "Chat with community members",
+    link: "/communities"
   }];
+
   return <div className="min-h-screen bg-gray-50">
       <Navbar />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -119,4 +128,5 @@ const Index = () => {
       </div>
     </div>;
 };
+
 export default Index;
