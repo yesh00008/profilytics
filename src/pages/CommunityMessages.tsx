@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Loader2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
@@ -22,6 +22,7 @@ const CommunityMessages = () => {
   const { toast } = useToast();
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(true);
+  const [sending, setSending] = useState(false);
   const [currentUser, setCurrentUser] = useState<string | null>(null);
   const [community, setCommunity] = useState<Community | null>(null);
 
@@ -75,7 +76,8 @@ const CommunityMessages = () => {
         .select(`
           *,
           profiles!messages_sender_id_fkey (
-            full_name
+            full_name,
+            avatar_url
           )
         `)
         .eq('community_id', communityId)
@@ -111,12 +113,21 @@ const CommunityMessages = () => {
           table: 'messages',
           filter: `community_id=eq.${communityId}`
         }, 
-        (payload) => {
-          // Ensure the new message has the correct type
+        async (payload) => {
+          // Fetch the sender profile information
+          const { data: profileData } = await supabase
+            .from('profiles')
+            .select('full_name, avatar_url')
+            .eq('id', payload.new.sender_id)
+            .single();
+          
+          // Ensure the new message has the correct type and profile info
           const newMessage = {
-            ...payload.new as Omit<Message, 'type'>,
-            type: 'community' as const
+            ...payload.new as Omit<Message, 'type' | 'profiles'>,
+            type: 'community' as const,
+            profiles: profileData || { full_name: 'Unknown User' }
           };
+          
           setMessages(prev => [...prev, newMessage as Message]);
         }
       )
@@ -130,6 +141,7 @@ const CommunityMessages = () => {
   const handleSendMessage = async (content: string) => {
     if (!currentUser || !communityId) return;
 
+    setSending(true);
     try {
       const { error } = await supabase
         .from('messages')
@@ -147,6 +159,8 @@ const CommunityMessages = () => {
         title: "Error sending message",
         description: error.message,
       });
+    } finally {
+      setSending(false);
     }
   };
 
@@ -155,7 +169,10 @@ const CommunityMessages = () => {
       <div className="min-h-screen bg-gray-50">
         <Navbar />
         <div className="max-w-4xl mx-auto px-4 py-8">
-          Loading messages...
+          <div className="flex justify-center items-center h-64">
+            <Loader2 className="h-8 w-8 animate-spin text-green-600" />
+            <span className="ml-2 text-gray-500">Loading messages...</span>
+          </div>
         </div>
       </div>
     );
@@ -169,7 +186,7 @@ const CommunityMessages = () => {
           <Button
             variant="ghost"
             onClick={() => navigate('/communities')}
-            className="mb-4"
+            className="mb-4 flex items-center hover:bg-green-50 hover:text-green-600"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Communities
@@ -179,12 +196,18 @@ const CommunityMessages = () => {
           )}
         </div>
 
-        <Card className="p-4 h-[600px] flex flex-col">
+        <Card className="p-4 h-[600px] flex flex-col shadow-md rounded-xl border-gray-200">
+          <div className="flex items-center justify-between p-3 border-b">
+            <h2 className="text-lg font-semibold text-gray-800">Community Chat</h2>
+          </div>
           <MessageList 
             messages={messages} 
             currentUserId={currentUser} 
           />
-          <MessageInputForm onSendMessage={handleSendMessage} />
+          <MessageInputForm 
+            onSendMessage={handleSendMessage} 
+            disabled={sending}
+          />
         </Card>
       </div>
     </div>

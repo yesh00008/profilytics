@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
-import { Pencil, Plus, Briefcase, GraduationCap, MapPin, Globe, UserPlus } from "lucide-react";
+import { Pencil, Plus, Briefcase, GraduationCap, MapPin, Globe, UserPlus, ArrowLeft } from "lucide-react";
 import { format } from "date-fns";
 
 interface Profile {
@@ -106,6 +106,15 @@ const Profile = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-3xl mx-auto px-4 py-8">
+        <Button
+          variant="ghost"
+          onClick={() => navigate('/')}
+          className="mb-4 flex items-center hover:bg-green-50 hover:text-green-600"
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Back to Home
+        </Button>
+        
         <Card className="mb-6 overflow-hidden">
           <div className="relative h-32 bg-gradient-to-r from-blue-400 to-blue-600">
             <Button

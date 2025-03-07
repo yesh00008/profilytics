@@ -3,18 +3,12 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Loader2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import MessageList, { Message } from "@/components/messages/MessageList";
 import MessageInputForm from "@/components/messages/MessageInputForm";
-
-interface Community {
-  id: string;
-  name: string;
-  community_type: 'public' | 'private' | 'external';
-}
 
 const Messages = () => {
   const { userId } = useParams();
@@ -22,8 +16,9 @@ const Messages = () => {
   const { toast } = useToast();
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(true);
+  const [sending, setSending] = useState(false);
   const [currentUser, setCurrentUser] = useState<string | null>(null);
-  const [community, setCommunity] = useState<Community | null>(null);
+  const [receiverProfile, setReceiverProfile] = useState<any>(null);
 
   useEffect(() => {
     checkUser();
@@ -32,6 +27,7 @@ const Messages = () => {
   useEffect(() => {
     if (currentUser && userId) {
       loadMessages();
+      loadReceiverProfile();
       const unsubscribe = subscribeToNewMessages();
       return unsubscribe;
     }
@@ -46,6 +42,21 @@ const Messages = () => {
     setCurrentUser(user.id);
   };
 
+  const loadReceiverProfile = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+
+      if (error) throw error;
+      setReceiverProfile(data);
+    } catch (error: any) {
+      console.error("Error loading receiver profile:", error);
+    }
+  };
+
   const loadMessages = async () => {
     try {
       const { data, error } = await supabase
@@ -53,7 +64,8 @@ const Messages = () => {
         .select(`
           *,
           profiles!messages_sender_id_fkey (
-            full_name
+            full_name,
+            avatar_url
           )
         `)
         .or(`sender_id.eq.${currentUser},receiver_id.eq.${currentUser}`)
@@ -63,10 +75,10 @@ const Messages = () => {
 
       if (error) throw error;
 
-      // Ensure type property is specifically 'community'
+      // Ensure type property is specifically 'direct'
       const typedMessages = data?.map(msg => ({
         ...msg,
-        type: 'community' as const
+        type: 'direct' as const
       })) || [];
       
       setMessages(typedMessages);
@@ -90,15 +102,25 @@ const Messages = () => {
           table: 'messages',
           filter: `community_id=is.null`
         }, 
-        (payload) => {
+        async (payload) => {
           const msg = payload.new as any;
           if ((msg.sender_id === currentUser && msg.receiver_id === userId) || 
               (msg.sender_id === userId && msg.receiver_id === currentUser)) {
-            // Ensure the new message has the correct type
+            
+            // Fetch the sender profile information
+            const { data: profileData } = await supabase
+              .from('profiles')
+              .select('full_name, avatar_url')
+              .eq('id', msg.sender_id)
+              .single();
+            
+            // Ensure the new message has the correct type and profile info
             const newMessage = {
               ...msg,
-              type: 'community' as const
+              type: 'direct' as const,
+              profiles: profileData || { full_name: 'Unknown User' }
             };
+            
             setMessages(prev => [...prev, newMessage as Message]);
           }
         }
@@ -112,7 +134,8 @@ const Messages = () => {
 
   const handleSendMessage = async (content: string) => {
     if (!currentUser || !userId) return;
-
+    
+    setSending(true);
     try {
       const { error } = await supabase
         .from('messages')
@@ -121,7 +144,8 @@ const Messages = () => {
           sender_id: currentUser,
           receiver_id: userId,
           community_id: null,
-          type: 'direct'
+          type: 'direct',
+          read: false
         });
 
       if (error) throw error;
@@ -131,6 +155,8 @@ const Messages = () => {
         title: "Error sending message",
         description: error.message,
       });
+    } finally {
+      setSending(false);
     }
   };
 
@@ -140,7 +166,8 @@ const Messages = () => {
         <Navbar />
         <div className="max-w-4xl mx-auto px-4 py-8">
           <div className="flex justify-center items-center h-64">
-            <div className="animate-pulse text-gray-500">Loading messages...</div>
+            <Loader2 className="h-8 w-8 animate-spin text-green-600" />
+            <span className="ml-2 text-gray-500">Loading messages...</span>
           </div>
         </div>
       </div>
@@ -164,13 +191,18 @@ const Messages = () => {
 
         <Card className="p-4 h-[600px] flex flex-col shadow-md rounded-xl border-gray-200">
           <div className="flex items-center justify-between p-3 border-b mb-3">
-            <h2 className="text-lg font-semibold text-gray-800">Messages</h2>
+            <h2 className="text-lg font-semibold text-gray-800">
+              {receiverProfile ? `Chat with ${receiverProfile.full_name}` : 'Messages'}
+            </h2>
           </div>
           <MessageList 
             messages={messages} 
             currentUserId={currentUser} 
           />
-          <MessageInputForm onSendMessage={handleSendMessage} />
+          <MessageInputForm 
+            onSendMessage={handleSendMessage} 
+            disabled={sending}
+          />
         </Card>
       </div>
     </div>
